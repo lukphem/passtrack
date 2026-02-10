@@ -35,7 +35,7 @@
 
         {{-- Academic_Sessions --}}
         <li>
-            <a href="{{ route('admin.departments.index') }}"
+            <a href="{{ route('admin.academic-sessions.index') }}"
                class="nav-link {{ request()->routeIs('admin.sessions.*') ? 'active' : '' }}">
                 <i class="bi bi-calendar-date"></i>
                 <span class="link-text">Academic Sessions</span>
@@ -44,8 +44,8 @@
 
                 {{-- Semester --}}
         <li>
-            <a href="{{ route('admin.departments.index') }}"
-               class="nav-link {{ request()->routeIs('admin.sessions.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.academic-semester.index') }}"
+               class="nav-link {{ request()->routeIs('admin.academic-semester.*') ? 'active' : '' }}">
                 <i class="bi bi-cloud"></i>
                 <span class="link-text">Semester Mgt</span>
             </a>

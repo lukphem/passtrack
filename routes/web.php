@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AcademicSemesterController;
 use App\Http\Controllers\AcademicSessionController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\Lecturer\LecturerDashboardController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+
 
 
 
@@ -64,14 +66,16 @@ Route::prefix('admin')
         Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
         Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
 
-        // ================= ACADEMIC SESSIONS =================
-        Route::get('/academic-sessions', [AcademicSessionController::class, 'index'])->name('academic-sessions.index');
-        Route::get('/academic-sessions/create', [AcademicSessionController::class, 'create'])->name('academic-sessions.create');
-        Route::post('/academic-sessions', [AcademicSessionController::class, 'store'])->name('academic-sessions.store');
-        Route::get('/academic-sessions/{academicSession}', [AcademicSessionController::class, 'show'])->name('academic-sessions.show');
-        Route::get('/academic-sessions/{academicSession}/edit', [AcademicSessionController::class, 'edit'])->name('academic-sessions.edit');
-        Route::put('/academic-sessions/{academicSession}', [AcademicSessionController::class, 'update'])->name('academic-sessions.update');
-        Route::delete('/academic-sessions/{academicSession}', [AcademicSessionController::class, 'destroy'])->name('academic-sessions.destroy');
+                // ================= ACADEMIC SEMESTER =================
+        Route::get('/academic-semester', [AcademicSemesterController::class, 'index'])->name('academic-semester.index');
+        Route::get('/academic-semester/create', [AcademicSemesterController::class, 'create'])->name('academic-semester.create');
+        Route::post('/academic-semester', [AcademicSemesterController::class, 'store'])->name('academic-semester.store');
+        Route::get('/academic-semester/{academicSemester}', [AcademicSemesterController::class, 'show'])->name('academic-semester.show');
+        Route::get('/academic-semester/{academicSemester}/edit', [AcademicSemesterController::class, 'edit'])->name('academic-semester.edit');
+        Route::put('/academic-semester/{academicSemester}', [AcademicSemesterController::class, 'update'])->name('academic-semester.update');
+        Route::delete('/academic-semester/{academicSemester}', [AcademicSemesterController::class, 'destroy'])->name('academic-semester.destroy');
+
+
 
         // ================= USERS =================
         Route::get('/users', [UserController::class, 'index'])->name('users.index');

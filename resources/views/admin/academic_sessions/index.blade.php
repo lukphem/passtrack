@@ -1,143 +1,133 @@
 @extends('admin.dashboard.layouts.admin')
 
 @section('content')
-
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
     <div>
-        <h3 class="fw-bold">Academic Session Management</h3>
-        <p class="text-muted mb-0">
-            Manage academic years and active sessions
-        </p>
+        <h3 class="fw-bold mb-1">Academic Sessions</h3>
+        <p class="text-muted mb-0">Manage school calendar and active sessions</p>
     </div>
 
-    <button class="btn btn-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#addSessionModal">
-        <i class="bi bi-plus"></i> Add Session
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSessionModal">
+        <i class="bi bi-plus-circle"></i> Add Session
     </button>
 </div>
 
-<div class="row g-4">
-@foreach($sessions as $session)
-    <div class="col-md-6 col-lg-4">
-        <div class="card h-100 shadow-sm border-0">
+@forelse($academic_sessions as $session)
+<div class="card mb-3 shadow-sm border-0 {{ $session->is_active ? 'border-start border-success border-4' : '' }}">
+    <div class="card-body">
+        <div class="row align-items-center">
 
-            <div class="card-body d-flex flex-column justify-content-between">
-
-                {{-- Header --}}
-                <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="col-12 col-md-3 mb-3 mb-md-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="{{ $session->is_active ? 'text-success' : 'text-secondary' }} d-none d-lg-block">
+                        <i class="bi bi-calendar-event fs-4"></i>
+                    </div>
                     <div>
-                        <h5 class="fw-semibold mb-0">
-                            {{ $session->name }}
-                        </h5>
-                        <small class="text-muted">
-                            {{ $session->start_year }} – {{ $session->end_year }}
-                        </small>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary"
-                                data-bs-toggle="modal"
-                                data-bs-target="#editSession{{ $session->id }}">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-
-                        @if(!$session->is_active)
-                        <button class="btn btn-sm btn-outline-danger"
-                                data-bs-toggle="modal"
-                                data-bs-target="#deleteSession{{ $session->id }}">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                        @endif
+                        <span class="text-muted text-uppercase fw-semibold d-block" style="font-size: 0.65rem; letter-spacing: 0.05em;">Session</span>
+                        <h6 class="mb-0 fw-bold">{{ $session->session_name }}</h6>
                     </div>
                 </div>
-
-                {{-- Status --}}
-                <div class="mb-3">
-                    @if($session->is_active)
-                        <span class="badge bg-success">
-                            Active Session
-                        </span>
-                    @else
-                        <span class="badge bg-secondary">
-                            Inactive Session
-                        </span>
-                    @endif
-                </div>
-
-                <hr>
-
-                {{-- Stats --}}
-                <div class="d-flex justify-content-between">
-
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="bg-primary bg-opacity-10 text-primary rounded p-2">
-                            <i class="bi bi-calendar-event"></i>
-                        </div>
-                        <div>
-                            <div class="fw-semibold">
-                                {{ $session->semesters_count ?? 0 }}
-                            </div>
-                            <small class="text-muted">Semesters</small>
-                        </div>
-                    </div>
-
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="bg-success bg-opacity-10 text-success rounded p-2">
-                            <i class="bi bi-check-circle"></i>
-                        </div>
-                        <div>
-                            <div class="fw-semibold">
-                                {{ $session->is_active ? 'Yes' : 'No' }}
-                            </div>
-                            <small class="text-muted">Active</small>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Actions --}}
-                <div class="mt-3 d-flex gap-2">
-                    @if(!$session->is_active)
-                        <form method="POST"
-                              action="{{ route('admin.academic-sessions.activate', $session) }}">
-                            @csrf
-                            <button class="btn btn-sm btn-outline-success w-100">
-                                Activate
-                            </button>
-                        </form>
-                    @else
-                        <button class="btn btn-sm btn-success w-100" disabled>
-                            Current Session
-                        </button>
-                    @endif
-                </div>
-
             </div>
+
+            <div class="col-6 col-md-2 mb-3 mb-md-0">
+                <span class="text-muted text-uppercase fw-semibold d-block" style="font-size: 0.65rem; letter-spacing: 0.05em;">Start Date</span>
+                <span class="fw-bold small">{{ \Carbon\Carbon::parse($session->start_date)->format('M d, Y') }}</span>
+            </div>
+
+            <div class="col-6 col-md-2 mb-3 mb-md-0">
+                <span class="text-muted text-uppercase fw-semibold d-block" style="font-size: 0.65rem; letter-spacing: 0.05em;">End Date</span>
+                <span class="fw-bold small">{{ \Carbon\Carbon::parse($session->end_date)->format('M d, Y') }}</span>
+            </div>
+
+            <div class="col-6 col-md-2">
+                <span class="text-muted text-uppercase fw-semibold d-block" style="font-size: 0.65rem; letter-spacing: 0.05em;">Status</span>
+                <span class="badge {{ $session->is_active ? 'bg-success' : 'bg-light text-muted border' }} rounded-pill" style="font-size: 0.7rem;">
+                    {{ $session->is_active ? 'Active' : 'Inactive' }}
+                </span>
+            </div>
+
+            <div class="col-6 col-md-3 text-end">
+                <div class="btn-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                    <button class="btn btn-sm btn-white border-end"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editSessionModal{{ $session->id }}"
+                            title="Edit">
+                        <i class="bi bi-pencil text-primary"></i>
+                    </button>
+                    <button class="btn btn-sm btn-white"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteSession{{ $session->id }}"
+                            title="Delete">
+                        <i class="bi bi-trash text-danger"></i>
+                    </button>
+                </div>
+            </div>
+
         </div>
     </div>
-@endforeach
 </div>
-
+@empty
+    @endforelse
 @endsection
 
 
 {{-- ================= MODALS ================= --}}
 
 {{-- Add Session Modal --}}
-@include('admin.academic-sessions.partials.add-modal')
+@include('admin.academic_sessions.partials.add-modal')
 
-
-{{-- Edit Session Modals --}}
-@foreach ($sessions as $session)
-    @include('admin.academic-sessions.partials.edit-modal', [
-        'session' => $session
-    ])
+{{-- Edit & Delete Modals --}}
+@foreach ($academic_sessions as $session)
+    @include('admin.academic_sessions.partials.edit-modal', ['session' => $session])
+    @include('admin.academic_sessions.partials.delete-modal', ['session' => $session])
 @endforeach
 
 
-{{-- Delete Session Modals --}}
-@foreach ($sessions as $session)
-    @include('admin.academic-sessions.partials.delete-modal', [
-        'session' => $session
-    ])
-@endforeach
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    function applyDateLimits(sessionSelect, startInput, endInput) {
+        const option = sessionSelect.options[sessionSelect.selectedIndex];
+        if (!option) return;
+
+        const min = option.dataset.start;
+        const max = option.dataset.end;
+
+        startInput.min = min;
+        startInput.max = max;
+        endInput.min = min;
+        endInput.max = max;
+
+        if (startInput.value < min) startInput.value = min;
+        if (endInput.value > max) endInput.value = max;
+    }
+
+    // ADD MODAL
+    const addSession = document.getElementById('add_session');
+    if (addSession) {
+        addSession.addEventListener('change', () => {
+            applyDateLimits(
+                addSession,
+                document.getElementById('add_start_date'),
+                document.getElementById('add_end_date')
+            );
+        });
+    }
+
+    // EDIT MODALS
+    document.querySelectorAll('.session-select').forEach(select => {
+        const modal = select.closest('.modal');
+        const start = modal.querySelector('.start-date');
+        const end = modal.querySelector('.end-date');
+
+        applyDateLimits(select, start, end);
+
+        select.addEventListener('change', () => {
+            applyDateLimits(select, start, end);
+        });
+    });
+
+});
+</script>
+@endpush

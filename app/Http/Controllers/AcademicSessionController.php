@@ -14,17 +14,10 @@ class AcademicSessionController extends Controller
      */
     public function index()
     {
-        $academic_sessions = AcademicSession::orderBy('start_year', 'desc')->get();
+        // Ordered by the most recent start date
+        $academic_sessions = AcademicSession::orderBy('start_date', 'desc')->get();
 
-        return view('academic_sessions.index', compact('academic_sessions'));
-    }
-
-    /**
-     * Show the form for creating a new session.
-     */
-    public function create()
-    {
-        return view('academic_sessions.create');
+        return view('admin.academic_sessions.index', compact('academic_sessions'));
     }
 
     /**
@@ -33,41 +26,38 @@ class AcademicSessionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'start_year' => 'required|integer|min:2000',
-            'end_year'   => 'required|integer|gt:start_year',
+            'session_name' => 'required|string|max:255',
+            'start_date'   => 'required|date',
+            'end_date'     => 'required|date|after:start_date',
+            'is_active'    => 'sometimes|boolean',
         ]);
 
-        $session = DB::transaction(function () use ($request) {
+        DB::transaction(function () use ($request) {
+            $is_active = $request->has('is_active');
 
-            // Deactivate currently active session
-            AcademicSession::where('is_active', true)
-                ->update(['is_active' => false]);
-
-            // Create the new session
-            $newSession = AcademicSession::create([
-                'start_year' => $request->start_year,
-                'end_year'   => $request->end_year,
-                'is_active'  => true,
-            ]);
-
-            // Increment student levels if this is NOT the first session
-            if (AcademicSession::count() > 1) {
-                User::where('role', 'student')->increment('level', 100);
+            // If the new session is set to active, deactivate all others
+            if ($is_active) {
+                AcademicSession::where('is_active', true)->update(['is_active' => false]);
             }
 
-            return $newSession;
+            // Create the new session
+            AcademicSession::create([
+                'session_name' => $request->session_name,
+                'start_date'   => $request->start_date,
+                'end_date'     => $request->end_date,
+                'is_active'    => $is_active,
+            ]);
+
+            // Increment student levels logic
+            // Note: Usually, this is done via a specific 'Promotion' button rather than on creation,
+            // but keeping your logic here:
+            if ($is_active && AcademicSession::count() > 1) {
+                User::where('role', 'student')->increment('level', 100);
+            }
         });
 
-        return redirect()->route('academic-sessions.index')
+        return redirect()->route('admin.academic-sessions.index')
             ->with('success', 'Academic session created successfully.');
-    }
-
-    /**
-     * Show the form for editing the specified session.
-     */
-    public function edit(AcademicSession $academicSession)
-    {
-        return view('academic_sessions.edit', compact('academicSession'));
     }
 
     /**
@@ -76,24 +66,30 @@ class AcademicSessionController extends Controller
     public function update(Request $request, AcademicSession $academicSession)
     {
         $request->validate([
-            'start_year' => 'required|integer|min:2000',
-            'end_year'   => 'required|integer|gt:start_year',
-            'is_active'  => 'boolean',
+            'session_name' => 'required|string|max:255',
+            'start_date'   => 'required|date',
+            'end_date'     => 'required|date|after:start_date',
+            'is_active'    => 'sometimes|boolean',
         ]);
 
         DB::transaction(function () use ($request, $academicSession) {
+            $is_active = $request->has('is_active');
 
-            // If setting this session active, deactivate others
-            if ($request->boolean('is_active')) {
+            if ($is_active) {
                 AcademicSession::where('is_active', true)
                     ->where('id', '!=', $academicSession->id)
                     ->update(['is_active' => false]);
             }
 
-            $academicSession->update($request->only('start_year', 'end_year', 'is_active'));
+            $academicSession->update([
+                'session_name' => $request->session_name,
+                'start_date'   => $request->start_date,
+                'end_date'     => $request->end_date,
+                'is_active'    => $is_active,
+            ]);
         });
 
-        return redirect()->route('academic-sessions.index')
+        return redirect()->route('admin.academic-sessions.index')
             ->with('success', 'Academic session updated successfully.');
     }
 
@@ -103,13 +99,13 @@ class AcademicSessionController extends Controller
     public function destroy(AcademicSession $academicSession)
     {
         if ($academicSession->is_active) {
-            return redirect()->route('academic-sessions.index')
+            return redirect()->route('admin.academic-sessions.index')
                 ->with('error', 'Cannot delete the active academic session.');
         }
 
         $academicSession->delete();
 
-        return redirect()->route('academic-sessions.index')
+        return redirect()->route('admin.academic-sessions.index')
             ->with('success', 'Academic session deleted successfully.');
     }
 }

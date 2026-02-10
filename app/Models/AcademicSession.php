@@ -7,11 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class AcademicSession extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'session_name',
-        'start_year',
-        'end_year',
+        'start_date',
+        'end_date',
         'is_active',
     ];
-}
 
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date'   => 'date',
+        'is_active'  => 'boolean',
+    ];
+
+    public function semesters()
+    {
+        return $this->hasMany(Semester::class);
+    }
+}
