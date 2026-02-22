@@ -17,6 +17,7 @@ class Department extends Model
         'faculty_id',
     ];
 
+
     /* =====================
         RELATIONSHIPS
     ====================== */
@@ -28,11 +29,17 @@ class Department extends Model
 
     public function students()
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(Student::class);
     }
 
     public function courses()
     {
         return $this->hasMany(Course::class);
     }
+
+        public function programmes()
+    {
+        return $this->hasMany(Programme::class);
+    }
+
 }

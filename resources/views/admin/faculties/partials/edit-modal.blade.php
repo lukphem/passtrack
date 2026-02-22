@@ -2,10 +2,15 @@
     <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
         <div class="modal-content">
 
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">Edit Faculty</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+        <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title fw-bold">
+                <i class="bi bi-pencil-square"></i> Edit Faculty
+            </h5>
+            <button type="button"
+                    class="btn-close btn-close-white"
+                    data-bs-dismiss="modal"></button>
+        </div>
+
 
             <form method="POST" action="{{ route('admin.faculties.update', $faculty) }}">
                 @csrf
@@ -17,18 +22,18 @@
                         <div class="col-12">
                             <label class="form-label">Faculty Name</label>
                             <input type="text"
-                                   name="name"
+                                   name="faculty_name"
                                    class="form-control"
-                                   value="{{ old('name', $faculty->name) }}"
+                                   value="{{ old('faculty_name', $faculty->faculty_name) }}"
                                    required>
                         </div>
 
                         <div class="col-12">
                             <label class="form-label">Faculty Code</label>
                             <input type="text"
-                                   name="code"
+                                   name="faculty_code"
                                    class="form-control"
-                                   value="{{ old('code', $faculty->code) }}"
+                                   value="{{ old('faculty_code', $faculty->faculty_code) }}"
                                    required>
                         </div>
 

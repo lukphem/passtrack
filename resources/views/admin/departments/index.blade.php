@@ -2,18 +2,27 @@
 
 @section('content')
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h3 class="fw-bold">Department Management</h3>
-        <p class="text-muted mb-0">Manage all departments across faculties</p>
+<div class="row align-items-sm-center mb-4">
+
+    {{-- Title Section --}}
+    <div class="col-12 col-sm">
+        <h3 class="fw-bold mb-1">Department Management</h3>
+        <p class="text-muted mb-2 mb-sm-0 small">
+            Manage all departments across faculties
+        </p>
     </div>
 
-    <button class="btn btn-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#addDepartmentModal">
-        <i class="bi bi-plus"></i> Add Department
-    </button>
+    {{-- Button Section --}}
+    <div class="col-12 col-sm-auto">
+        <button class="btn btn-primary w-100 w-sm-auto"
+                data-bs-toggle="modal"
+                data-bs-target="#addDepartmentModal">
+            <i class="bi bi-plus"></i> Add Department
+        </button>
+    </div>
+
 </div>
+
 
 <div class="row g-4">
 @foreach($departments as $department)
@@ -57,7 +66,7 @@
                     <div class="mb-1">
                         <strong>Faculty:</strong>
                         <span class="text-muted">
-                            {{ $department->faculty->name ?? 'N/A' }}
+                            {{ $department->faculty->faculty_name ?? 'N/A' }}
                         </span>
                     </div>
 

@@ -25,6 +25,8 @@ class DepartmentController extends Controller
 
     public function store(Request $request)
     {
+
+
         $validated = $request->validate([
             'dept_name'           => 'required|string|max:255|unique:departments,dept_name',
             'dept_code'           => 'required|string|max:20|unique:departments,dept_code',
@@ -65,4 +67,13 @@ class DepartmentController extends Controller
             ->route('admin.departments.index')
             ->with('success', 'Department deleted successfully');
     }
+
+    public function getByFaculty($facultyId)
+    {
+        $departments = Department::where('faculty_id', $facultyId)->get();
+        dd($departments);
+        return response()->json($departments);
+    }
+
+
 }

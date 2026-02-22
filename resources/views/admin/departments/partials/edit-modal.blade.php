@@ -2,10 +2,13 @@
     <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
         <div class="modal-content">
 
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="editDepartmentLabel{{ $department->id }}">Edit Department</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="editDepartmentLabel{{ $department->id }}">
+                    <i class="bi bi-pencil"></i> Edit Department
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
+
 
             <form method="POST" action="{{ route('admin.departments.update', $department) }}">
                 @csrf
@@ -34,13 +37,15 @@
 
                         <div class="col-12">
                             <label class="form-label">Faculty</label>
-                            <select name="faculty_id" class="form-select" required>
-                                @foreach($faculties as $faculty)
-                                    <option value="{{ $faculty->id }}" {{ $department->faculty_id == $faculty->id ? 'selected' : '' }}>
-                                        {{ $faculty->name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                                <select name="faculty_id" class="form-select" required>
+                                    <option value="">Select Faculty</option>
+                                    @foreach($faculties as $faculty)
+                                        <option value="{{ $faculty->id }}"
+                                            {{ old('faculty_id', $department->faculty_id ?? '') == $faculty->id ? 'selected' : '' }}>
+                                            {{ $faculty->faculty_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                         </div>
 
                         <div class="col-12">

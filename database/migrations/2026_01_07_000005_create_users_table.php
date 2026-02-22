@@ -11,23 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-Schema::create('users', function (Blueprint $table) {
-    $table->id();
-    $table->string('name');
-    $table->string('email')->unique();
-    $table->timestamp('email_verified_at')->nullable();
-    $table->string('password');
-    $table->string('phone')->nullable();
-    $table->text('address')->nullable();
-    $table->string('gender')->nullable(); // optional
-    $table->date('dob')->nullable(); // optional
-    $table->integer('level')->default(100); // starting level for students
-    $table->string('matric_number')->nullable()->unique(); // required only for students
-    $table->enum('role', ['student', 'lecturer', 'admin']);
-    $table->foreignId('department_id')->constrained()->cascadeOnDelete();
-    $table->rememberToken();
-    $table->timestamps();
-});
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('first_name');
+            $table->string('middle_name');
+             $table->string('last_name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+             $table->enum('role', ['student', 'lecturer', 'admin']);
+            $table->string('status')->default('active');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

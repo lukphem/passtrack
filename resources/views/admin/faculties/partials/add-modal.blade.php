@@ -3,10 +3,15 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
 
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">Add Faculty</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-building-fill-add"></i> Add Faculty
+                </h5>
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
             </div>
+
 
             <form method="POST" action="{{ route('admin.faculties.store') }}">
                 @csrf
@@ -15,12 +20,12 @@
 
                     <div class="mb-3 w-100">
                         <label class="form-label">Faculty Name</label>
-                        <input type="text" name="name" class="form-control w-100" required>
+                        <input type="text" name="faculty_name" class="form-control w-100" required>
                     </div>
 
                     <div class="mb-3 w-100">
                         <label class="form-label">Faculty Code</label>
-                        <input type="text" name="code" class="form-control w-100" required>
+                        <input type="text" name="faculty_code" class="form-control w-100" required>
                     </div>
 
                     <div class="mb-3 w-100">

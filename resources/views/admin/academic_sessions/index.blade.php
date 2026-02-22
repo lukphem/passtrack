@@ -1,16 +1,28 @@
 @extends('admin.dashboard.layouts.admin')
 
 @section('content')
-<div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
-    <div>
+
+<div class="row align-items-sm-center mb-4">
+
+    {{-- Title Section --}}
+    <div class="col-12 col-sm">
         <h3 class="fw-bold mb-1">Academic Sessions</h3>
-        <p class="text-muted mb-0">Manage school calendar and active sessions</p>
+        <p class="text-muted mb-2 mb-sm-0 small">
+            Manage school calendar and active sessions
+        </p>
     </div>
 
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSessionModal">
-        <i class="bi bi-plus-circle"></i> Add Session
-    </button>
+    {{-- Button Section --}}
+    <div class="col-12 col-sm-auto">
+        <button class="btn btn-primary w-100 w-sm-auto"
+                data-bs-toggle="modal"
+                data-bs-target="#addSessionModal">
+            <i class="bi bi-plus-circle"></i> Add Session
+        </button>
+    </div>
+
 </div>
+
 
 @forelse($academic_sessions as $session)
 <div class="card mb-3 shadow-sm border-0 {{ $session->is_active ? 'border-start border-success border-4' : '' }}">

@@ -18,7 +18,7 @@
         <li>
             <a href="{{ route('admin.faculties.index') }}"
                class="nav-link {{ request()->routeIs('admin.faculties.*') ? 'active' : '' }}">
-                <i class="bi bi-diagram-3"></i>
+                <i class="bi bi-building"></i>
                 <span class="link-text">Faculties</span>
             </a>
         </li>
@@ -27,7 +27,7 @@
         <li>
             <a href="{{ route('admin.departments.index') }}"
                class="nav-link {{ request()->routeIs('admin.departments.*') ? 'active' : '' }}">
-                <i class="bi bi-building"></i>
+                <i class="bi bi-diagram-3"></i>
                 <span class="link-text">Departments</span>
             </a>
         </li>
@@ -51,6 +51,32 @@
             </a>
         </li>
 
+        {{-- Programmes --}}
+        <li>
+            <a href="{{ route('admin.programmes.index') }}"
+            class="nav-link {{ request()->routeIs('admin.programmes.*') ? 'active' : '' }}">
+                <i class="bi bi-mortarboard"></i>
+                <span class="link-text">Programmes</span>
+            </a>
+        </li>
+
+        {{-- Levels --}}
+        <li>
+            <a href="{{ route('admin.levels.index') }}"
+            class="nav-link {{ request()->routeIs('admin.levels.*') ? 'active' : '' }}">
+                <i class="bi bi-layers"></i>
+                <span class="link-text">Levels</span>
+            </a>
+        </li>
+
+        {{-- Lecturers --}}
+        <li>
+            <a href="{{ route('admin.lecturers.index') }}"
+               class="nav-link {{ request()->routeIs('admin.lecturers.*') ? 'active' : '' }}">
+                <i class="bi bi-person-badge"></i>
+                <span class="link-text">Lecturers</span>
+            </a>
+        </li>
 
         {{-- Courses --}}
         <li>
@@ -62,14 +88,7 @@
         </li>
 
 
-        {{-- Lecturers --}}
-        <li>
-            <a href="{{ route('admin.users.index', ['role' => 'lecturer']) }}"
-               class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                <i class="bi bi-person-badge"></i>
-                <span class="link-text">Lecturers</span>
-            </a>
-        </li>
+
 
                         {{-- Students --}}
         <li>

@@ -3,10 +3,15 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
 
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">Add Department</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-diagram-3-fill"></i> Add Department
+                </h5>
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
             </div>
+
 
             <form method="POST" action="{{ route('admin.departments.store') }}">
                 @csrf
@@ -38,7 +43,7 @@
                             <option value="">Select Faculty</option>
                             @foreach ($faculties as $faculty)
                                 <option value="{{ $faculty->id }}">
-                                    {{ $faculty->name }}
+                                    {{ $faculty->faculty_name }}
                                 </option>
                             @endforeach
                         </select>

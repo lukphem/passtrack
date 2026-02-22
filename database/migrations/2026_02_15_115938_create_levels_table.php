@@ -9,15 +9,10 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
- public function up(): void
+    public function up(): void
     {
-        Schema::create('faculties', function (Blueprint $table) {
+        Schema::create('levels', function (Blueprint $table) {
             $table->id();
-            $table->string('faculty_name');
-            $table->string('faculty_code')->unique();
-            $table->string('dean')->nullable();
-            $table->year('established_year')->nullable();
-            $table->text('description')->nullable();
             $table->timestamps();
         });
     }
@@ -27,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('faculties');
+        Schema::dropIfExists('levels');
     }
 };

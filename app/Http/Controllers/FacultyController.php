@@ -34,8 +34,8 @@ class FacultyController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'             => 'required|string|max:255',
-            'code'             => 'required|string|max:50|unique:faculties,code',
+            'faculty_name'     => 'required|string|max:255',
+            'faculty_code'     => 'required|string|max:50|unique:faculties,faculty_code',
             'dean'             => 'nullable|string|max:255',
             'established_year' => 'nullable|integer|min:1900|max:' . date('Y'),
             'description'      => 'nullable|string',
@@ -70,8 +70,8 @@ class FacultyController extends Controller
     public function update(Request $request, Faculty $faculty)
     {
         $validated = $request->validate([
-            'name'             => 'required|string|max:255',
-            'code'             => 'required|string|max:10|unique:faculties,code,' . $faculty->id,
+            'faculty_name'     => 'required|string|max:255',
+            'faculty_code'     => 'required|string|max:10|unique:faculties,faculty_code,' . $faculty->id,
             'dean'             => 'nullable|string|max:255',
             'established_year' => 'nullable|integer|min:1900|max:' . date('Y'),
             'description'      => 'nullable|string',

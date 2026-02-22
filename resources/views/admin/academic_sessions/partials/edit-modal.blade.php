@@ -3,18 +3,13 @@
         <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
 
             {{-- Header --}}
-            <div class="modal-header border-bottom-0 pt-4 px-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="bg-warning text-white rounded-3 p-2 d-flex align-items-center justify-content-center"
-                         style="width: 40px; height: 40px;">
-                        <i class="bi bi-pencil-square"></i>
-                    </div>
-                    <h5 class="modal-title fw-bold text-dark mb-0" style="letter-spacing: -0.02em;">
-                        Edit Academic Session
-                    </h5>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-pencil-square me-2"></i> Edit Academic Session
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
 
             {{-- Form --}}
             <form method="POST" action="{{ route('admin.academic-sessions.update', $session->id) }}">
@@ -114,9 +109,7 @@
                         Cancel
                     </button>
 
-                    <button type="submit"
-                            class="btn btn-warning px-4 fw-bold shadow-sm"
-                            style="border-radius: 10px;">
+                    <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
                         Update Session
                     </button>
                 </div>
