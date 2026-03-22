@@ -39,6 +39,7 @@ return new class extends Migration
             $table->string('status')->default('active');
 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

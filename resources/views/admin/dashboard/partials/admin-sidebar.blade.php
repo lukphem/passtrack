@@ -60,14 +60,6 @@
             </a>
         </li>
 
-        {{-- Levels --}}
-        <li>
-            <a href="{{ route('admin.levels.index') }}"
-            class="nav-link {{ request()->routeIs('admin.levels.*') ? 'active' : '' }}">
-                <i class="bi bi-layers"></i>
-                <span class="link-text">Levels</span>
-            </a>
-        </li>
 
         {{-- Lecturers --}}
         <li>
@@ -86,7 +78,15 @@
                 <span class="link-text">Courses</span>
             </a>
         </li>
-
+        
+        {{-- Course Registration --}}
+        <li>
+            <a href="{{ route('admin.academic-sessions.index') }}"
+               class="nav-link {{ request()->routeIs('admin.academic-sessions.*') ? 'active' : '' }}">
+                <i class="bi bi-pencil-square"></i>
+                <span class="link-text">Course Registration</span>
+            </a>
+        </li>
 
 
 
@@ -99,14 +99,7 @@
             </a>
         </li>
 
-        {{-- Course Registration --}}
-        <li>
-            <a href="{{ route('admin.academic-sessions.index') }}"
-               class="nav-link {{ request()->routeIs('admin.academic-sessions.*') ? 'active' : '' }}">
-                <i class="bi bi-pencil-square"></i>
-                <span class="link-text">Course Registration</span>
-            </a>
-        </li>
+
 
         {{-- Performance --}}
         <li>

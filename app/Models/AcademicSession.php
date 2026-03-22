@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AcademicSession extends Model
 {
     use HasFactory;
+     use SoftDeletes;
 
     protected $fillable = [
         'session_name',
@@ -20,6 +22,8 @@ class AcademicSession extends Model
         'start_date' => 'date',
         'end_date'   => 'date',
         'is_active'  => 'boolean',
+        'registration_start_date' => 'datetime',
+        'registration_end_date' => 'datetime',
     ];
 
     public function semesters()

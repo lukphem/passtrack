@@ -83,10 +83,13 @@ Route::prefix('admin')
         Route::get('/programmes', [ProgrammeController::class, 'index'])->name('programmes.index');
         Route::get('/programmes/create', [ProgrammeController::class, 'create'])->name('programmes.create');
         Route::post('/programmes', [ProgrammeController::class, 'store'])->name('programmes.store');
+        Route::get('/programmes/custom-settings', [ProgrammeController::class, 'customSettings'])->name('programmes.custom-settings');
+        Route::put('/programmes/{programme}/custom-settings',[ProgrammeController::class, 'updateCustomSettings'])->name('programmes.updateCustomSettings');
         Route::get('/programmes/{programme}', [ProgrammeController::class, 'show'])->name('programmes.show');
         Route::get('/programmes/{programme}/edit', [ProgrammeController::class, 'edit'])->name('programmes.edit');
         Route::put('/programmes/{programme}', [ProgrammeController::class, 'update'])->name('programmes.update');
         Route::delete('/programmes/{programme}', [ProgrammeController::class, 'destroy'])->name('programmes.destroy');
+
 
 
         // ================= LEVELS =================

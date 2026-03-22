@@ -182,7 +182,7 @@
 </div>
 
 {{-- Auto-open Edit Lecturer Modal on validation errors --}}
-@if ($errors->any() && session('edit_lecturer_id') == $lecturer->id)
+@if ($errors->any() && session('edit_lecturer_error') == $lecturer->id)
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const modalEl = document.getElementById('editLecturerModal{{ $lecturer->id }}');

@@ -18,7 +18,9 @@ return new class extends Migration
             $table->string('dean')->nullable();
             $table->year('established_year')->nullable();
             $table->text('description')->nullable();
+            $table->enum('status', ['active', 'inactive'])->default('active'); 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

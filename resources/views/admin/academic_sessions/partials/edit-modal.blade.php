@@ -1,120 +1,138 @@
-<div class="modal fade" id="editSessionModal{{ $session->id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+{{-- Edit Academic Session Modal --}}
+<div class="modal fade"
+     id="editSessionModal{{ $session->id }}"
+     tabindex="-1"
+     aria-hidden="true">
 
-            {{-- Header --}}
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-pencil-square me-2"></i> Edit Academic Session
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
 
-
-            {{-- Form --}}
-            <form method="POST" action="{{ route('admin.academic-sessions.update', $session->id) }}">
+            <form method="POST"
+                  action="{{ route('admin.academic-sessions.update', $session->id) }}"
+                  class="needs-validation"
+                  novalidate>
                 @csrf
                 @method('PUT')
 
-                <div class="modal-body px-4 pt-0">
-                    <p class="text-muted small mb-4">
-                        Update the academic session details. Changes will reflect immediately across the system.
-                    </p>
+                {{-- Header --}}
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-pencil-square"></i> Edit Academic Session
+                    </h5>
+                    <button type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal"></button>
+                </div>
+
+                {{-- Body --}}
+                <div class="modal-body">
+
+                    @if($errors->any())
+                        <div class="alert alert-danger">
+                            <strong>Please fix the errors below.</strong>
+                        </div>
+                    @endif
 
                     <div class="row g-3">
 
-                        {{-- 1. Session Name --}}
-                        <div class="col-12 col-md-6 mb-2">
-                            <label class="form-label fw-semibold text-uppercase text-muted"
-                                   style="font-size: 0.7rem; letter-spacing: 0.05em;">
-                                Session Name
+                        {{-- SESSION NAME --}}
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <span class="text-danger">*</span> Session Name
                             </label>
                             <input type="text"
                                    name="session_name"
-                                   class="form-control"
                                    value="{{ old('session_name', $session->session_name) }}"
+                                   class="form-control @error('session_name') is-invalid @enderror"
                                    placeholder="e.g. 2025/2026"
-                                   style="border-radius: 10px; padding: 0.6rem 1rem;"
                                    required>
+                            @error('session_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                        {{-- 2. Status Toggle --}}
-                        <div class="col-12 col-md-6 mb-2">
-                            <label class="form-label fw-semibold text-uppercase text-muted"
-                                   style="font-size: 0.7rem; letter-spacing: 0.05em;">
-                                Session Status
-                            </label>
-                            <div class="form-control d-flex align-items-center justify-content-between"
-                                 style="border-radius: 10px; padding: 0.6rem 1rem; background-color: #f8f9fa;">
-                                <span class="small text-dark">Set as Active</span>
-                                <div class="form-check form-switch mb-0">
-                                    <input class="form-check-input"
-                                           type="checkbox"
-                                           name="is_active"
-                                           value="1"
-                                           id="activeSwitch{{ $session->id }}"
-                                           {{ old('is_active', $session->is_active) ? 'checked' : '' }}>
-                                </div>
+                        {{-- STATUS --}}
+                        <div class="col-md-6">
+                            <label class="form-label">Session Status</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       name="is_active"
+                                       value="1"
+                                       id="activeSwitch{{ $session->id }}"
+                                       {{ old('is_active', $session->is_active) ? 'checked' : '' }}>
+                                <label class="form-check-label"
+                                       for="activeSwitch{{ $session->id }}">
+                                    Set as Active
+                                </label>
                             </div>
+                            @error('is_active')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                        {{-- 3. Start Date --}}
-                        <div class="col-12 col-md-6 mb-2">
-                            <label class="form-label fw-semibold text-uppercase text-muted"
-                                   style="font-size: 0.7rem; letter-spacing: 0.05em;">
-                                Start Date
+                        {{-- START DATE --}}
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <span class="text-danger">*</span> Start Date
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0"
-                                      style="border-radius: 10px 0 0 10px;">
-                                    <i class="bi bi-calendar-event text-primary"></i>
-                                </span>
-                                <input type="date"
-                                       name="start_date"
-                                       class="form-control border-start-0"
-                                       value="{{ old('start_date', $session->start_date->format('Y-m-d')) }}"
-                                       style="border-radius: 0 10px 10px 0; padding: 0.6rem 1rem;"
-                                       required>
-                            </div>
+                            <input type="date"
+                                   name="start_date"
+                                   value="{{ old('start_date', optional($session->start_date)->format('Y-m-d')) }}"
+                                   class="form-control @error('start_date') is-invalid @enderror"
+                                   required>
+                            @error('start_date')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                        {{-- 4. End Date --}}
-                        <div class="col-12 col-md-6 mb-2">
-                            <label class="form-label fw-semibold text-uppercase text-muted"
-                                   style="font-size: 0.7rem; letter-spacing: 0.05em;">
-                                End Date
+                        {{-- END DATE --}}
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <span class="text-danger">*</span> End Date
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0"
-                                      style="border-radius: 10px 0 0 10px;">
-                                    <i class="bi bi-calendar-check text-success"></i>
-                                </span>
-                                <input type="date"
-                                       name="end_date"
-                                       class="form-control border-start-0"
-                                       value="{{ old('end_date', $session->end_date->format('Y-m-d')) }}"
-                                       style="border-radius: 0 10px 10px 0; padding: 0.6rem 1rem;"
-                                       required>
-                            </div>
+                            <input type="date"
+                                   name="end_date"
+                                   value="{{ old('end_date', optional($session->end_date)->format('Y-m-d')) }}"
+                                   class="form-control @error('end_date') is-invalid @enderror"
+                                   required>
+                            @error('end_date')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                     </div>
                 </div>
 
                 {{-- Footer --}}
-                <div class="modal-footer border-top-0 pb-4 px-4 gap-2">
+                <div class="modal-footer bg-light">
                     <button type="button"
-                            class="btn btn-link text-muted fw-semibold text-decoration-none"
+                            class="btn btn-secondary"
                             data-bs-dismiss="modal">
                         Cancel
                     </button>
-
-                    <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
-                        Update Session
+                    <button type="submit"
+                            class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Update Session
                     </button>
                 </div>
-            </form>
 
+            </form>
         </div>
     </div>
 </div>
+
+{{-- Auto-open Edit Session Modal on validation errors --}}
+@if ($errors->any()
+    && session('edit_session_id')
+    && session('edit_session_id') == $session->id)
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modalEl = document.getElementById('editSessionModal{{ $session->id }}');
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+});
+</script>
+@endif

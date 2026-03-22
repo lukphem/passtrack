@@ -24,10 +24,9 @@ public function up(): void
         $table->string('accreditation_status')->nullable(); // Full, Interim, None
         $table->year('accreditation_year')->nullable();
         $table->boolean('programme_status')->default(true);// Active or inactive
-                $table->foreignId('department_id')
-              ->nullable()
-              ->constrained('departments')
-              ->onDelete('cascade');
+        $table->foreignId('department_id')->nullable()->constrained('departments')->onDelete('cascade');
+        // Override toggle
+        $table->boolean('use_custom_academic_settings')->default(false);
         $table->timestamps();
         $table->softDeletes();
     });

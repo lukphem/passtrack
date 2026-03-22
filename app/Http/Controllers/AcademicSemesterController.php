@@ -6,21 +6,33 @@ use App\Models\AcademicSession;
 use App\Models\Semester;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 
 class AcademicSemesterController extends Controller
 {
     /**
-     * Display a listing of semesters.
+     * Display a listing of semesters with search.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('admin.semesters.index', [
-            'semesters' => Semester::with('academicSession')
-                ->orderByDesc('start_date')
-                ->get(),
-            'academicSessions' => AcademicSession::orderByDesc('start_date')->get(),
-        ]);
+        $query = Semester::with('academicSession');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('semester_name', 'like', "%{$search}%")
+                  ->orWhereHas('academicSession', function ($sub) use ($search) {
+                      $sub->where('session_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $semesters = $query->latest()->paginate(10)->withQueryString();
+        $academicSessions = AcademicSession::orderByDesc('start_date')->get();
+
+        return view('admin.semesters.index', compact('semesters', 'academicSessions'));
     }
 
     /**
@@ -28,24 +40,26 @@ class AcademicSemesterController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $this->validateRequest($request);
+        try {
+            $data = $this->validateRequest($request);
+            $session = AcademicSession::findOrFail($data['academic_session_id']);
 
-        $session = AcademicSession::findOrFail($data['academic_session_id']);
-
-        // Validate semester dates and business rules
-        if ($errors = $this->validateSemesterDates($data, $session)) {
-            return back()
+            if ($errors = $this->validateSemesterDates($data, $session)) {
+                return redirect()->back()
+                    ->withErrors($errors)
+                    ->withInput()
+                    ->with('add_semester_error', true);
+            }
+        } catch (ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->validator)
                 ->withInput()
-                ->withErrors($errors)
-                ->with('add_semester_error', true); // optional flag for Add modal
+                ->with('add_semester_error', true);
         }
 
-        DB::transaction(function () use ($data) {
-            Semester::create($data);
-        });
+        DB::transaction(fn() => Semester::create($data));
 
-        return redirect()
-            ->route('admin.academic-semester.index')
+        return redirect()->route('admin.academic-semester.index')
             ->with('success', 'Semester created successfully.');
     }
 
@@ -54,25 +68,28 @@ class AcademicSemesterController extends Controller
      */
     public function update(Request $request, Semester $academicSemester)
     {
-        $data = $this->validateRequest($request);
+        try {
+            $data = $this->validateRequest($request);
+            $session = AcademicSession::findOrFail($data['academic_session_id']);
 
-        $session = AcademicSession::findOrFail($data['academic_session_id']);
-
-        // Validate semester dates and business rules
-        if ($errors = $this->validateSemesterDates($data, $session, $academicSemester->id)) {
-            return back()
+            if ($errors = $this->validateSemesterDates($data, $session, $academicSemester->id)) {
+                return redirect()->back()
+                    ->withErrors($errors)
+                    ->withInput()
+                    ->with('edit_semester_error', true)
+                    ->with('edit_semester_id', $academicSemester->id);
+            }
+        } catch (ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->validator)
                 ->withInput()
-                ->withErrors($errors)
-                ->with('edit_semester_id', $academicSemester->id); // Pass ID to open correct modal
+                ->with('edit_semester_error', true)
+                ->with('edit_semester_id', $academicSemester->id);
         }
 
-        DB::transaction(function () use ($academicSemester, $data) {
-            $academicSemester->update($data);
-        });
+        DB::transaction(fn() => $academicSemester->update($data));
 
-        return redirect()
-            ->route('admin.academic-semester.index')
-            ->with('success', 'Semester updated successfully.');
+        return back()->with('success', 'Semester updated successfully.');
     }
 
     /**
@@ -81,20 +98,53 @@ class AcademicSemesterController extends Controller
     public function destroy(Semester $academicSemester)
     {
         if ($academicSemester->is_active) {
-            return redirect()
-                ->route('admin.academic-semester.index')
-                ->with('error', 'Cannot delete an active semester.');
+            return back()->with('error', 'Cannot delete an active semester.');
         }
 
-        $academicSemester->delete();
+        // Optional: prevent deletion if semester has registrations, results, etc.
+        if ($academicSemester->courseRegistrations()->exists()) {
+            return back()->with('error', 'Cannot delete semester with course registrations.');
+        }
 
-        return redirect()
-            ->route('admin.academic-semester.index')
+        DB::transaction(fn() => $academicSemester->delete());
+
+        return redirect()->route('admin.academic-semester.index')
             ->with('success', 'Semester deleted successfully.');
     }
 
     /**
-     * Shared request validation for store/update.
+     * Activate a semester.
+     */
+    public function activate(Semester $academicSemester)
+    {
+        // Ensure only currently running semester can be active
+        $today = now();
+        if ($today->lt($academicSemester->start_date) || $today->gt($academicSemester->end_date)) {
+            return back()->with('error', 'Only a currently running semester can be activated.');
+        }
+
+        DB::transaction(function () use ($academicSemester) {
+            Semester::where('academic_session_id', $academicSemester->academic_session_id)
+                ->where('is_active', true)
+                ->update(['is_active' => false]);
+
+            $academicSemester->update(['is_active' => true]);
+        });
+
+        return back()->with('success', 'Semester activated.');
+    }
+
+    /**
+     * Deactivate a semester.
+     */
+    public function deactivate(Semester $academicSemester)
+    {
+        $academicSemester->update(['is_active' => false]);
+        return back()->with('success', 'Semester deactivated.');
+    }
+
+    /**
+     * Validate incoming request.
      */
     private function validateRequest(Request $request): array
     {
@@ -109,7 +159,6 @@ class AcademicSemesterController extends Controller
             'registration_allowed'    => 'nullable|boolean',
         ]);
 
-        // Normalize checkbox values
         $data['is_active'] = $request->boolean('is_active');
         $data['registration_allowed'] = $request->boolean('registration_allowed');
 
@@ -117,79 +166,107 @@ class AcademicSemesterController extends Controller
     }
 
     /**
-     * Validate semester date logic and business rules.
+     * Business rules validation.
      */
+    /**
+ * Business rules validation for semesters.
+ */
     private function validateSemesterDates(array $data, AcademicSession $session, $ignoreId = null)
     {
         $errors = [];
 
-        $semesterStart = Carbon::parse($data['start_date']);
-        $semesterEnd   = Carbon::parse($data['end_date']);
-
-        $sessionStart  = Carbon::parse($session->start_date);
-        $sessionEnd    = Carbon::parse($session->end_date);
-
-        // 1. Semester must be within Academic Session
-        if ($semesterStart->lt($sessionStart) || $semesterEnd->gt($sessionEnd)) {
-            $errors['start_date'] =
-                "Semester must start and end within the academic session period ({$sessionStart->format('M d, Y')} - {$sessionEnd->format('M d, Y')}).";
+        // Normalize semester dates
+        try {
+            $semesterStart = Carbon::parse($data['start_date'])->startOfDay();
+            $semesterEnd   = Carbon::parse($data['end_date'])->endOfDay();
+        } catch (\Exception $e) {
+            $errors['start_date'] = 'Invalid semester start or end date format.';
+            return $errors;
         }
 
-        // 2. Registration window must be within Semester
-        if (!empty($data['registration_start_date']) || !empty($data['registration_end_date'])) {
+        // Normalize session dates
+        $sessionStart = Carbon::parse($session->start_date)->startOfDay();
+        $sessionEnd   = Carbon::parse($session->end_date)->endOfDay();
 
+        // Semester must fall within session
+        if ($semesterStart->lt($sessionStart) || $semesterEnd->gt($sessionEnd)) {
+            $errors['start_date'] =
+                "Semester must fall within session period ({$sessionStart->format('Y/m/d')} - {$sessionEnd->format('Y/m/d')}).";
+        }
+
+        // Registration window checks (if provided)
+        if (!empty($data['registration_start_date']) || !empty($data['registration_end_date'])) {
             if (empty($data['registration_start_date']) || empty($data['registration_end_date'])) {
                 $errors['registration_start_date'] =
-                    'Both registration start and end dates must be provided for the registration window.';
+                    'Both registration start and end dates must be provided.';
             } else {
-                $regStart = Carbon::parse($data['registration_start_date']);
-                $regEnd   = Carbon::parse($data['registration_end_date']);
+                try {
+                    $regStart = Carbon::parse($data['registration_start_date']);
+                    $regEnd   = Carbon::parse($data['registration_end_date']);
+                } catch (\Exception $e) {
+                    $errors['registration_start_date'] = 'Invalid registration date format.';
+                    return $errors;
+                }
 
+                // Ensure registration window is within semester
                 if ($regStart->lt($semesterStart) || $regEnd->gt($semesterEnd)) {
                     $errors['registration_start_date'] =
-                        'Registration window must be within the semester start and end dates.';
+                        'Registration window must fall within the semester period.';
+                }
+
+                // Ensure registration window is within session
+                if ($regStart->lt($sessionStart) || $regEnd->gt($sessionEnd)) {
+                    $errors['registration_end_date'] =
+                        'Registration window must fall within the academic session period.';
+                }
+
+                // Ensure start < end
+                if ($regEnd->lt($regStart)) {
+                    $errors['registration_end_date'] =
+                        'Registration end date must be after registration start date.';
                 }
             }
         }
 
-        // 3. Registration allowed requires valid dates
-        if (!empty($data['registration_allowed'])) {
-            if (empty($data['registration_start_date']) || empty($data['registration_end_date'])) {
-                $errors['registration_allowed'] =
-                    'You must set registration start and end dates before enabling course registration.';
-            }
+        // Semester name must be unique per session
+        $exists = Semester::where('academic_session_id', $session->id)
+            ->where('semester_name', $data['semester_name'])
+            ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
+            ->exists();
+
+        if ($exists) {
+            $errors['semester_name'] = 'This semester name already exists in the academic session.';
         }
 
-        // 4. Only one active semester per session
-        if (!empty($data['is_active'])) {
+        // Only one active semester per session
+        if ($data['is_active']) {
             $activeExists = Semester::where('academic_session_id', $session->id)
-                ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+                ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
                 ->where('is_active', true)
                 ->exists();
 
             if ($activeExists) {
-                $errors['is_active'] =
-                    'Another semester is already active in this academic session. Only one active semester is allowed.';
+                $errors['is_active'] = "Another semester is already active in this academic session({$session->session_name}).";
+            }
+
+            if (!$session->is_active) {
+                $errors['is_active'] = "Cannot activate a semester under an inactive academic session({$session->session_name}).";
             }
         }
 
-        // 5. Overlap check (same session)
-        $overlap = Semester::where('academic_session_id', $session->id)
-            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
-            ->where(function ($query) use ($semesterStart, $semesterEnd) {
-                $query
-                    ->whereBetween('start_date', [$semesterStart, $semesterEnd])
-                    ->orWhereBetween('end_date', [$semesterStart, $semesterEnd])
-                    ->orWhere(function ($q) use ($semesterStart, $semesterEnd) {
-                        $q->where('start_date', '<=', $semesterStart)
-                          ->where('end_date', '>=', $semesterEnd);
-                    });
-            })
-            ->exists();
+        // Prevent overlapping semesters
+        $overlappingSemester = Semester::where('academic_session_id', $session->id)
+            ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
+            ->where('start_date', '<=', $semesterEnd)
+            ->where('end_date', '>=', $semesterStart)
+            ->first();
 
-        if ($overlap) {
+        if ($overlappingSemester) {
+            $overlapStart = Carbon::parse($overlappingSemester->start_date)->format('Y/m/d');
+            $overlapEnd   = Carbon::parse($overlappingSemester->end_date)->format('Y/m/d');
+
             $errors['overlap'] =
-                'This semester overlaps with another semester in the same academic session. Please adjust the dates.';
+                "This semester overlaps with another semester: '{$overlappingSemester->semester_name}' ({$overlapStart} to {$overlapEnd}).";
         }
 
         return !empty($errors) ? $errors : null;

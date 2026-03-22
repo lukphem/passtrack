@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use App\Models\Department;
 use App\Models\Student;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Faculty extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
         'faculty_name',
@@ -17,6 +19,7 @@ class Faculty extends Model
         'dean',
         'established_year',
         'description',
+        'status',
     ];
 
     /**

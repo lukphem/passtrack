@@ -161,6 +161,7 @@ class LecturerController extends Controller
             'middle_name' => 'nullable|string|max:100',
             'last_name' => 'required|string|max:100',
             'phone' => ['nullable', 'regex:/^\+?[1-9]\d{7,14}$/'],
+            'email' => 'required|email|unique:users,email,' . $lecturer->user_id,
             'staff_id' => [
                 'required',
                 Rule::unique('lecturers')->ignore($lecturer->id),
@@ -225,6 +226,7 @@ class LecturerController extends Controller
             'middle_name' => $data['middle_name'],
             'last_name' => $data['last_name'],
             'status' => $data['status'],
+            'email' => $data['email'],
         ]);
     });
 

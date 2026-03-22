@@ -1,83 +1,137 @@
-<div class="modal fade" id="addSessionModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg"> <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+{{-- Add Academic Session Modal --}}
+<div class="modal fade"
+     id="addSessionModal"
+     tabindex="-1"
+     aria-hidden="true">
 
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-calendar-plus-fill me-2"></i> Add Academic Session
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
 
-            <form method="POST" action="{{ route('admin.academic-sessions.store') }}">
+            <form method="POST"
+                  action="{{ route('admin.academic-sessions.store') }}"
+                  class="needs-validation"
+                  novalidate>
                 @csrf
 
-                <div class="modal-body px-4 pt-0">
-                    <p class="text-muted small mb-4">Set the timeframe for the upcoming academic year. Active sessions will be the default for all student records.</p>
+                {{-- Header --}}
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-calendar-plus-fill"></i> Add Academic Session
+                    </h5>
+                    <button type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal"></button>
+                </div>
+
+                {{-- Body --}}
+                <div class="modal-body">
+
+                    @if($errors->any())
+                        <div class="alert alert-danger">
+                            <strong>Please fix the errors below.</strong>
+                        </div>
+                    @endif
 
                     <div class="row g-3">
-                        {{-- 1. Session Name --}}
-                        <div class="col-12 col-md-6 mb-2">
-                            <label class="form-label fw-semibold text-uppercase text-muted" style="font-size: 0.7rem; letter-spacing: 0.05em;">Session Name</label>
+
+                        {{-- SESSION NAME --}}
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <span class="text-danger">*</span> Session Name
+                            </label>
                             <input type="text"
                                    name="session_name"
-                                   class="form-control"
+                                   value="{{ old('session_name') }}"
+                                   class="form-control @error('session_name') is-invalid @enderror"
                                    placeholder="e.g. 2025/2026"
-                                   style="border-radius: 10px; padding: 0.6rem 1rem;"
                                    required>
+                            @error('session_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                        {{-- 2. Status Toggle (Aligns on same line as Name on desktop) --}}
-                        <div class="col-12 col-md-6 mb-2">
-                            <label class="form-label fw-semibold text-uppercase text-muted" style="font-size: 0.7rem; letter-spacing: 0.05em;">Initial Status</label>
-                            <div class="form-control d-flex align-items-center justify-content-between" style="border-radius: 10px; padding: 0.6rem 1rem; background-color: #f8f9fa;">
-                                <span class="small text-dark">Set as Active</span>
-                                <div class="form-check form-switch mb-0">
-                                    <input class="form-check-input" type="checkbox" name="is_active" value="1" id="activeSwitch" checked>
-                                </div>
+                        {{-- STATUS --}}
+                        <div class="col-md-6">
+                            <label class="form-label">Initial Status</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       name="is_active"
+                                       value="1"
+                                       id="activeSwitch"
+                                       {{ old('is_active', 1) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="activeSwitch">
+                                    Set as Active
+                                </label>
                             </div>
+                            @error('is_active')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                        {{-- 3. Start Date --}}
-                        <div class="col-12 col-md-6 mb-2">
-                            <label class="form-label fw-semibold text-uppercase text-muted" style="font-size: 0.7rem; letter-spacing: 0.05em;">Start Date</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;"><i class="bi bi-calendar-event text-primary"></i></span>
-                                <input type="date"
-                                       name="start_date"
-                                       class="form-control border-start-0"
-                                       style="border-radius: 0 10px 10px 0; padding: 0.6rem 1rem;"
-                                       required>
-                            </div>
+                        {{-- START DATE --}}
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <span class="text-danger">*</span> Start Date
+                            </label>
+                            <input type="date"
+                                   name="start_date"
+                                   value="{{ old('start_date') ? \Carbon\Carbon::parse(old('start_date'))->format('Y-m-d') : '' }}"
+                                   class="form-control @error('start_date') is-invalid @enderror"
+                                   required>
+                            @error('start_date')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                        {{-- 4. End Date --}}
-                        <div class="col-12 col-md-6 mb-2">
-                            <label class="form-label fw-semibold text-uppercase text-muted" style="font-size: 0.7rem; letter-spacing: 0.05em;">End Date</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;"><i class="bi bi-calendar-check text-success"></i></span>
-                                <input type="date"
-                                       name="end_date"
-                                       class="form-control border-start-0"
-                                       style="border-radius: 0 10px 10px 0; padding: 0.6rem 1rem;"
-                                       required>
-                            </div>
+                        {{-- END DATE --}}
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <span class="text-danger">*</span> End Date
+                            </label>
+                            <input type="date"
+                                   name="end_date"
+                                   value="{{ old('end_date') ? \Carbon\Carbon::parse(old('end_date'))->format('Y-m-d') : '' }}"
+                                   class="form-control @error('end_date') is-invalid @enderror"
+                                   required>
+                            @error('end_date')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
+
                     </div>
                 </div>
 
-                <div class="modal-footer border-top-0 pb-4 px-4 gap-2">
+                {{-- Footer --}}
+                <div class="modal-footer bg-light">
                     <button type="button"
-                            class="btn btn-link text-muted fw-semibold text-decoration-none"
+                            class="btn btn-secondary"
                             data-bs-dismiss="modal">
                         Cancel
                     </button>
-
-                    <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm" style="border-radius: 10px;">
-                        Create Session
+                    <button type="submit"
+                            class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Save Session
                     </button>
                 </div>
-            </form>
 
+            </form>
         </div>
     </div>
 </div>
+
+{{-- Auto-open Add Session Modal on validation errors --}}
+@if ($errors->any() && session('add_session_error'))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modalEl = document.getElementById('addSessionModal');
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl, {
+            backdrop: true,
+            keyboard: true
+        });
+        modal.show();
+    }
+});
+</script>
+@endif

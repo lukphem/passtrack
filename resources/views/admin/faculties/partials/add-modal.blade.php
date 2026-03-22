@@ -1,56 +1,141 @@
-<!-- Add Faculty Modal -->
-<div class="modal fade" id="addFacultyModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+{{-- Add Faculty Modal --}}
+<div class="modal fade"
+     id="addFacultyModal"
+     tabindex="-1"
+     aria-hidden="true">
 
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-building-fill-add"></i> Add Faculty
-                </h5>
-                <button type="button"
-                        class="btn-close btn-close-white"
-                        data-bs-dismiss="modal"></button>
-            </div>
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
 
-
-            <form method="POST" action="{{ route('admin.faculties.store') }}">
+            <form method="POST"
+                  action="{{ route('admin.faculties.store') }}"
+                  class="needs-validation"
+                  novalidate>
                 @csrf
 
+                {{-- Header --}}
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-building-fill-add"></i> Add Faculty
+                    </h5>
+                    <button type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal"></button>
+                </div>
+
+                {{-- Body --}}
                 <div class="modal-body">
+                    @if($errors->any())
+                        <div class="alert alert-danger">
+                            <strong>Please fix the errors below.</strong>
+                        </div>
+                    @endif
 
-                    <div class="mb-3 w-100">
-                        <label class="form-label">Faculty Name</label>
-                        <input type="text" name="faculty_name" class="form-control w-100" required>
+                    <div class="row g-3">
+
+                        {{-- FACULTY NAME --}}
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <span class="text-danger">*</span> Faculty Name
+                            </label>
+                            <input type="text"
+                                   name="faculty_name"
+                                   value="{{ old('faculty_name') }}"
+                                   class="form-control @error('faculty_name') is-invalid @enderror"
+                                   placeholder="Enter Faculty Name"
+                                   required>
+                            @error('faculty_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- FACULTY CODE --}}
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <span class="text-danger">*</span> Faculty Code
+                            </label>
+                            <input type="text"
+                                   name="faculty_code"
+                                   value="{{ old('faculty_code') }}"
+                                   class="form-control @error('faculty_code') is-invalid @enderror"
+                                   placeholder="Enter Faculty Code"
+                                   required>
+                            @error('faculty_code')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- DEAN --}}
+                        <div class="col-md-6">
+                            <label class="form-label">Dean</label>
+                            <input type="text"
+                                   name="dean"
+                                   value="{{ old('dean') }}"
+                                   class="form-control @error('dean') is-invalid @enderror"
+                                   placeholder="Enter Dean Name (optional)">
+                            @error('dean')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- ESTABLISHED YEAR --}}
+                        <div class="col-md-6">
+                            <label class="form-label">Established Year</label>
+                            <input type="number"
+                                   name="established_year"
+                                   value="{{ old('established_year') }}"
+                                   class="form-control @error('established_year') is-invalid @enderror"
+                                   placeholder="e.g. 1998">
+                            @error('established_year')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- DESCRIPTION --}}
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            <textarea name="description"
+                                      rows="3"
+                                      class="form-control @error('description') is-invalid @enderror"
+                                      placeholder="Enter Faculty Description (optional)">{{ old('description') }}</textarea>
+                            @error('description')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                     </div>
-
-                    <div class="mb-3 w-100">
-                        <label class="form-label">Faculty Code</label>
-                        <input type="text" name="faculty_code" class="form-control w-100" required>
-                    </div>
-
-                    <div class="mb-3 w-100">
-                        <label class="form-label">Dean</label>
-                        <input type="text" name="dean" class="form-control w-100">
-                    </div>
-
-                    <div class="mb-3 w-100">
-                        <label class="form-label">Established Year</label>
-                        <input type="number" name="established_year" class="form-control w-100">
-                    </div>
-
-                    <div class="mb-3 w-100">
-                        <label class="form-label">Description</label>
-                        <textarea name="description" rows="3" class="form-control w-100"></textarea>
-                    </div>
-
                 </div>
 
-                <div class="modal-footer">
-                    <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-primary">Save Faculty</button>
+                {{-- Footer --}}
+                <div class="modal-footer bg-light">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Save Faculty
+                    </button>
                 </div>
+
             </form>
-
         </div>
     </div>
 </div>
+
+{{-- Auto-open Add Faculty Modal on validation errors --}}
+@if ($errors->any() && session('add_faculty_error'))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modalEl = document.getElementById('addFacultyModal');
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl, {
+            backdrop: true,
+            keyboard: true
+        });
+        modal.show();
+    }
+});
+</script>
+@endif

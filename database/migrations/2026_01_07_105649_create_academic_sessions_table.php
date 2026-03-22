@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('academic_sessions', function (Blueprint $table) {
             $table->id();
             $table->string('session_name'); // e.g. 2025/2026
-            $table->date('start_date');     // Changed from year to date
-            $table->date('end_date');       // Changed from year to date
+            $table->date('start_date');     
+            $table->date('end_date');
             $table->boolean('is_active')->default(false);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -5,75 +5,123 @@ namespace App\Http\Controllers;
 use App\Models\Department;
 use App\Models\Faculty;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class DepartmentController extends Controller
 {
-    public function index()
+    /**
+     * Display a listing of departments.
+     */
+    public function index(Request $request)
     {
-        $departments = Department::with('faculty')
-            ->withCount(['students', 'courses'])
-            ->latest()
-            ->get();
+        $query = Department::with('faculty')->withCount(['students', 'courses']);
 
+        // Optional: add search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('dept_name', 'like', "%{$search}%")
+                  ->orWhere('dept_code', 'like', "%{$search}%")
+                  ->orWhere('head_of_department', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $departments = $query->latest()->paginate(6)->withQueryString();
         $faculties = Faculty::all();
 
-        return view(
-            'admin.departments.index',
-            compact('departments', 'faculties')
-        );
+        return view('admin.departments.index', compact('departments', 'faculties'));
     }
 
+    /**
+     * Store a newly created department.
+     */
     public function store(Request $request)
     {
+        try {
+            $data = $request->validate([
+                'dept_name'          => 'required|string|max:255|unique:departments,dept_name',
+                'dept_code'          => 'required|string|max:20|unique:departments,dept_code',
+                'description'        => 'nullable|string',
+                'head_of_department' => 'nullable|string|max:255',
+                'established_year' => 'nullable|integer|min:1900|max:' . date('Y'),
+                'faculty_id'         => 'required|exists:faculties,id',
+            ]);
+        } catch (ValidationException $e) {
+            return redirect()
+                ->back()
+                ->withErrors($e->validator)
+                ->withInput()
+                ->with('add_department_error', true);
+        }
 
-
-        $validated = $request->validate([
-            'dept_name'           => 'required|string|max:255|unique:departments,dept_name',
-            'dept_code'           => 'required|string|max:20|unique:departments,dept_code',
-            'description'         => 'nullable|string',
-            'head_of_department'  => 'nullable|string|max:255',
-            'faculty_id'          => 'required|exists:faculties,id',
-        ]);
-
-        Department::create($validated);
+        DB::transaction(function () use ($data) {
+            Department::create($data + [
+                'status' => 'active',
+            ]);
+        });
 
         return redirect()
             ->route('admin.departments.index')
-            ->with('success', 'Department created successfully');
+            ->with('success', 'Department created successfully.');
     }
 
+    /**
+     * Update the specified department.
+     */
     public function update(Request $request, Department $department)
     {
-        $validated = $request->validate([
-            'dept_name'           => 'required|string|max:255|unique:departments,dept_name,' . $department->id,
-            'dept_code'           => 'required|string|max:20|unique:departments,dept_code,' . $department->id,
-            'description'         => 'nullable|string',
-            'head_of_department'  => 'nullable|string|max:255',
-            'faculty_id'          => 'required|exists:faculties,id',
-        ]);
+        try {
+            $data = $request->validate([
+                'dept_name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('departments')->ignore($department->id),
+                ],
+                'dept_code' => [
+                    'required',
+                    'string',
+                    'max:20',
+                    Rule::unique('departments')->ignore($department->id),
+                ],
+                'description'        => 'nullable|string',
+                'head_of_department' => 'nullable|string|max:255',
+                'faculty_id'         => 'required|exists:faculties,id',
+                'established_year' => 'nullable|integer|min:1900|max:' . date('Y'),
+                'status'             => 'required|in:active,inactive',
+            ]);
+        } catch (ValidationException $e) {
+            return redirect()
+                ->back()
+                ->withErrors($e->validator)
+                ->withInput()
+                ->with('edit_department_error', $department->id);
+        }
 
-        $department->update($validated);
+        DB::transaction(function () use ($department, $data) {
+            $department->update($data);
+        });
 
         return redirect()
             ->route('admin.departments.index')
-            ->with('success', 'Department updated successfully');
+            ->with('success', 'Department updated successfully.');
     }
 
+    /**
+     * Remove the specified department.
+     */
     public function destroy(Department $department)
     {
-        $department->delete();
+        DB::transaction(function () use ($department) {
+            $department->delete();
+        });
 
         return redirect()
             ->route('admin.departments.index')
-            ->with('success', 'Department deleted successfully');
+            ->with('success', 'Department deleted successfully.');
     }
-
-    public function getByFaculty($facultyId)
-    {
-        $departments = Department::where('faculty_id', $facultyId)->get();
-        dd($departments);
-        return response()->json($departments);
-    }
-
 
 }
