@@ -17,12 +17,12 @@ return new class extends Migration
             $table->string('course_title');
             $table->integer('credit_unit');
             $table->integer('level'); // 100, 200, etc
-            $table->enum('semester', ['First', 'Second']);
+            $table->enum('semester', ['First', 'Second', 'Third', 'Fourth']);
             $table->enum('course_type', ['Core', 'Elective']);
             $table->boolean('status')->default(1);
+            $table->text('course_description')->nullable();
             $table->foreignId('department_id')->constrained()->onDelete('cascade');
             $table->foreignId('lecturer_id')->constrained()->onDelete('cascade');
-            $table->foreignId('programme_id')->constrained()->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
         });

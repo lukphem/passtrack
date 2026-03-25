@@ -1,6 +1,6 @@
 {{-- ADD COURSE MODAL --}}
-<div class="modal fade" id="addCourseModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+<div class="modal fade" id="addCourseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg rounded-4">
 
             <form action="{{ route('admin.courses.store') }}" method="POST">
@@ -51,7 +51,7 @@
                                    required>
                         </div>
 
-                        {{-- DESCRIPTION --}}
+                        {{-- COURSE DESCRIPTION --}}
                         <div class="col-12">
                             <label class="form-label fw-semibold">Course Description</label>
                             <textarea name="course_description"
@@ -65,11 +65,9 @@
                             <label class="form-label fw-semibold">Level</label>
                             <select name="level" class="form-select" required>
                                 <option value="">Select Level</option>
-                                <option value="100" {{ old('level') == 100 ? 'selected' : '' }}>100</option>
-                                <option value="200" {{ old('level') == 200 ? 'selected' : '' }}>200</option>
-                                <option value="300" {{ old('level') == 300 ? 'selected' : '' }}>300</option>
-                                <option value="400" {{ old('level') == 400 ? 'selected' : '' }}>400</option>
-                                <option value="500" {{ old('level') == 500 ? 'selected' : '' }}>500</option>
+                                @for($i=100; $i<=700; $i+=100)
+                                    <option value="{{ $i }}" {{ old('level') == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                @endfor
                             </select>
                         </div>
 
@@ -80,6 +78,7 @@
                                 <option value="">Select Semester</option>
                                 <option value="First" {{ old('semester') == 'First' ? 'selected' : '' }}>First</option>
                                 <option value="Second" {{ old('semester') == 'Second' ? 'selected' : '' }}>Second</option>
+                                <option value="Third" {{ old('semester') == 'Third' ? 'selected' : '' }}>Third</option>
                             </select>
                         </div>
 
@@ -115,12 +114,42 @@
                             </select>
                         </div>
 
+                        {{-- DEPARTMENT --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Department</label>
+                            <select name="department_id" class="form-select" required>
+                                <option value="">Select Department</option>
+                                @foreach($departments as $department)
+                                    <option value="{{ $department->id }}"
+                                        {{ old('department_id') == $department->id ? 'selected' : '' }}>
+                                        {{ $department->dept_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- LECTURER --}}
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Lecturer</label>
+    <select name="lecturer_id" class="form-select" required>
+        <option value="">Select Lecturer</option>
+
+        @forelse($lecturers as $lecturer)
+            <option value="{{ $lecturer->id }}"
+                {{ old('lecturer_id') == $lecturer->id ? 'selected' : '' }}>
+
+                {{ $lecturer->first_name ?? '' }} {{ $lecturer->last_name ?? '' }}
+
+            </option>
+        @empty
+            <option disabled>No Lecturers Found</option>
+        @endforelse
+    </select>
+</div>
+
                         {{-- PROGRAMMES --}}
                         <div class="col-12">
-                            <label class="form-label fw-semibold">
-                                Assign to Programmes
-                            </label>
-
+                            <label class="form-label fw-semibold">Assign to Programmes</label>
                             <select name="programmes[]" class="form-select" multiple required>
                                 @foreach($programmes as $programme)
                                     <option value="{{ $programme->id }}"
@@ -129,7 +158,6 @@
                                     </option>
                                 @endforeach
                             </select>
-
                             <small class="text-muted">
                                 Hold Ctrl (Windows) or Command (Mac) to select multiple programmes.
                             </small>
@@ -139,13 +167,9 @@
                 </div>
 
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light"
-                            data-bs-dismiss="modal">
-                        Cancel
-                    </button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle me-1"></i>
-                        Save Course
+                        <i class="bi bi-check-circle me-1"></i> Save Course
                     </button>
                 </div>
 
@@ -153,3 +177,38 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const modalEl = document.getElementById('addProgrammeModal');
+    if (!modalEl) return;
+
+    const checkbox = document.getElementById('industrial_training_required_add');
+    const level = document.getElementById('industrial_training_level_add');
+    const form = modalEl.querySelector('form');
+
+    // Toggle training level
+    if (checkbox && level) {
+        level.disabled = !checkbox.checked;
+
+        checkbox.addEventListener('change', function () {
+            level.disabled = !this.checked;
+            if (!this.checked) level.value = '';
+        });
+    }
+
+    // ONLY reset if no validation error
+    modalEl.addEventListener('hidden.bs.modal', function () {
+        @if(!session('add_programme_error'))
+            if (form) form.reset();
+        @endif
+    });
+
+    // Reopen modal on validation error
+    @if(session('add_programme_error'))
+        new bootstrap.Modal(modalEl).show();
+    @endif
+
+});
+</script>

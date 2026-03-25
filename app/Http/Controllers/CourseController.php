@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Lecturer;
 use App\Models\Programme;
 use Illuminate\Http\Request;
 
@@ -12,79 +13,89 @@ class CourseController extends Controller
     /**
      * Display a listing of courses
      */
-    public function index(Request $request)
-    {
-        $query = Course::with('programmes');
+ public function index(Request $request)
+{
+    // Start query with eager loading
+    $query = Course::with(['programmes', 'department', 'lecturer']);
 
-        // Search input
-        if ($request->filled('search')) {
-            $search = $request->search;
-
-            $query->where(function ($q) use ($search) {
-                $q->where('course_code', 'like', "%{$search}%")
-                ->orWhere('course_title', 'like', "%{$search}%")
-                ->orWhere('level', 'like', "%{$search}%")
-                ->orWhere('semester', 'like', "%{$search}%")
-                ->orWhere('course_type', 'like', "%{$search}%")
-                ->orWhereHas('programmes', function ($q2) use ($search) {
-                    $q2->where('programme_name', 'like', "%{$search}%");
-                });
-            });
-        }
-
-        $courses = $query
-            ->orderBy('created_at', 'desc')
-            ->paginate(10)
-            ->withQueryString();
-
-        $programmes = Programme::orderBy('programme_name')->get();
-
-        return view('admin.courses.index', compact('courses', 'programmes'));
+    // Search filter
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('course_code', 'like', "%{$search}%")
+              ->orWhere('course_title', 'like', "%{$search}%")
+              ->orWhere('level', 'like', "%{$search}%")
+              ->orWhere('semester', 'like', "%{$search}%")
+              ->orWhere('course_type', 'like', "%{$search}%")
+              ->orWhereHas('programmes', function ($q2) use ($search) {
+                  $q2->where('programme_name', 'like', "%{$search}%");
+              });
+        });
     }
 
-    /**
-     * Show create form
-     */
-    public function create()
-    {
-        $programmes = Programme::orderBy('programme_name')->get();
+    // Order by most recent
+    $courses = $query->orderBy('created_at', 'desc')
+                     ->paginate(10)
+                     ->withQueryString();
 
-        return view('admin.courses.create', compact('programmes'));
-    }
+    // All programmes for Add/Edit modal dropdowns
+    $programmes = Programme::orderBy('programme_name')->with('department')->get();
+    $departments = $programmes->pluck('department')->unique()->sortBy('department_name');
+    $lecturers = Lecturer::orderBy('first_name')->get();
+    return view('admin.courses.index', compact('courses', 'programmes', 'departments', 'lecturers'));
+}
+
+
 
     /**
      * Store new course
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'course_code'     => 'required|string|max:20|unique:courses,course_code',
-            'course_title'    => 'required|string|max:255',
-            'credit_unit'     => 'required|integer|min:1|max:10',
-            'level'           => 'required|integer|min:100|max:900',
-            'semester'        => 'required|in:First,Second',
-            'course_type'     => 'required|in:Core,Elective',
-            'programme_ids'   => 'required|array',
-            'programme_ids.*' => 'exists:programmes,id',
-            'status'          => 'required|boolean',
+        // Validate request including department and lecturer
+        $validated = $request->validate([
+            'course_code' => 'required|string|max:255|unique:courses,course_code',
+            'course_title' => 'required|string|max:255',
+            'course_description' => 'nullable|string',
+            'level' => 'required|integer|in:100,200,300,400,500,600,700',
+            'semester' => 'required|in:First,Second,Third,Fourth',
+            'credit_unit' => 'required|integer|min:1|max:10',
+            'course_type' => 'required|in:Core,Elective,General',
+            'status' => 'required|boolean',
+            'department_id' => 'required|exists:departments,id',
+            'lecturer_id' => 'required|exists:lecturers,id',
+            'programmes' => 'required|array',
+            'programmes.*' => 'exists:programmes,id',
         ]);
 
-        $course = Course::create([
-            'course_code'  => $request->course_code,
-            'course_title' => $request->course_title,
-            'credit_unit'  => $request->credit_unit,
-            'level'        => $request->level,
-            'semester'     => $request->semester,
-            'course_type'  => $request->course_type,
-            'status'       => $request->status,
-        ]);
+        try {
+            // Create the course
+            $course = Course::create([
+                'course_code' => strtoupper($validated['course_code']),
+                'course_title' => $validated['course_title'],
+                'course_description' => $validated['course_description'] ?? null,
+                'level' => $validated['level'],
+                'semester' => $validated['semester'],
+                'credit_unit' => $validated['credit_unit'],
+                'course_type' => $validated['course_type'],
+                'status' => $validated['status'],
+                'department_id' => $validated['department_id'],
+                'lecturer_id' => $validated['lecturer_id'],
+            ]);
 
-        // Attach programmes
-        $course->programmes()->attach($request->programme_ids);
+// attach programmes
+$course->programmes()->sync($validated['programmes']);
 
-        return redirect()
-            ->route('admin.courses.index')
-            ->with('success', 'Course created successfully.');
+            // Sync many-to-many relationship with programmes
+            $course->programmes()->sync($validated['programmes']);
+
+            return redirect()->back()->with('success', 'Course added successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['general_error' => $e->getMessage()])
+                ->with('add_course_error', true);
+        }
     }
 
     /**
@@ -112,47 +123,79 @@ class CourseController extends Controller
     /**
      * Update course
      */
-    public function update(Request $request, Course $course)
+    public function update(Request $request, $id)
     {
-        $request->validate([
-            'course_code'     => 'required|string|max:20|unique:courses,course_code,' . $course->id,
-            'course_title'    => 'required|string|max:255',
-            'credit_unit'     => 'required|integer|min:1|max:10',
-            'level'           => 'required|integer|min:100|max:900',
-            'semester'        => 'required|in:First,Second',
-            'course_type'     => 'required|in:Core,Elective',
-            'programme_ids'   => 'required|array',
-            'programme_ids.*' => 'exists:programmes,id',
-            'status'          => 'required|boolean',
+        $course = Course::findOrFail($id);
+
+        // Validate EVERYTHING you will use
+        $validated = $request->validate([
+            'course_code' => 'required|string|max:255|unique:courses,course_code,' . $course->id,
+            'course_title' => 'required|string|max:255',
+            'course_description' => 'nullable|string',
+            'level' => 'required|integer|in:100,200,300,400,500,600,700',
+            'semester' => 'required|in:First,Second,Third,Fourth',
+            'credit_unit' => 'required|integer|min:1|max:10',
+            'course_type' => 'required|in:Core,Elective,General',
+            'status' => 'required|boolean',
+
+            // ADD THESE (YOU MISSED THEM)
+            'department_id' => 'required|exists:departments,id',
+            'lecturer_id' => 'required|exists:lecturers,id',
+
+            'programmes' => 'required|array',
+            'programmes.*' => 'exists:programmes,id',
         ]);
 
-        $course->update([
-            'course_code'  => $request->course_code,
-            'course_title' => $request->course_title,
-            'credit_unit'  => $request->credit_unit,
-            'level'        => $request->level,
-            'semester'     => $request->semester,
-            'course_type'  => $request->course_type,
-            'status'       => $request->status,
-        ]);
+        try {
+            // Update course
+            $course->update([
+                'course_code' => strtoupper($validated['course_code']),
+                'course_title' => $validated['course_title'],
+                'course_description' => $validated['course_description'] ?? null,
+                'level' => $validated['level'],
+                'semester' => $validated['semester'],
+                'credit_unit' => $validated['credit_unit'],
+                'course_type' => $validated['course_type'],
+                'status' => $validated['status'],
+                'department_id' => $validated['department_id'],
+                'lecturer_id' => $validated['lecturer_id'],
+            ]);
 
-        // Sync programmes (remove old + attach new)
-        $course->programmes()->sync($request->programme_ids);
+            // Sync pivot (ONLY ONCE)
+            $course->programmes()->sync($validated['programmes']);
 
-        return redirect()
-            ->route('admin.courses.index')
-            ->with('success', 'Course updated successfully.');
+            return redirect()->back()->with('success', 'Course updated successfully.');
+
+        } catch (\Exception $e) {
+
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['general_error' => $e->getMessage()])
+                ->with('edit_course_error', true)
+                ->with('edit_course_id', $course->id);
+        }
     }
-
     /**
      * Delete course
      */
-    public function destroy(Course $course)
+        public function destroy(Course $course)
     {
-        $course->delete();
+        try {
+            // Detach related programmes (pivot table cleanup)
+            $course->programmes()->detach();
 
-        return redirect()
-            ->route('admin.courses.index')
-            ->with('success', 'Course deleted successfully.');
+            // Delete the course (soft delete in your case)
+            $course->delete();
+
+            return redirect()
+                ->route('admin.courses.index')
+                ->with('success', 'Course deleted successfully.');
+
+        } catch (\Exception $e) {
+
+            return redirect()
+                ->back()
+                ->withErrors(['delete_error' => $e->getMessage()]);
+        }
     }
 }

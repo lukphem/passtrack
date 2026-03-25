@@ -52,6 +52,10 @@ class Programme extends Model
         return $this->belongsToMany(Course::class);
     }
 
+    public function programmes()
+    {
+        return $this->belongsToMany(Programme::class);
+    }
         public function department()
     {
         return $this->belongsTo(Department::class);

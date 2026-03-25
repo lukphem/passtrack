@@ -15,11 +15,14 @@ class Course extends Model
     protected $fillable = [
     'course_code',
     'course_title',
-    'credit_unit',
+    'course_description',
     'level',
     'semester',
+    'credit_unit',
     'course_type',
     'status',
+    'department_id',
+    'lecturer_id',
 ];
 
 
@@ -32,5 +35,19 @@ class Course extends Model
     {
         return $this->belongsToMany(Programme::class);
     }
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class);
+    }
+
+    public function lecturer()
+    {
+        return $this->belongsTo(Lecturer::class);
+    }
+
+
+
+
+    
 }
 

@@ -59,106 +59,88 @@
 </div>
 
 {{-- COURSE GRID --}}
-<div class="row g-4">
-@forelse($courses as $course)
+    <div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle mb-0">
 
-    <div class="col-12 col-md-6 col-lg-4">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Code</th>
+                    <th>Title</th>
+                    <th>Department</th>
+                    <th>Level</th>
+                    <th>Semester</th>
+                    <th>Programmes</th>
+                    <th>Status</th>
+                    <th width="150">Action</th>
+                </tr>
+            </thead>
 
-        <div class="card border-0 shadow-lg rounded-4 h-100 course-card position-relative">
+            <tbody>
+                @forelse($courses as $course)
+                    <tr>
+                        <td>{{ $loop->iteration }}</td>
+                        <td>{{ $course->course_code }}</td>
+                        <td>{{ $course->course_title }}</td>
+                        <td>{{ $course->department->dept_name ?? 'N/A' }}</td>
+                        <td>{{ $course->level }}</td>
+                        <td>{{ $course->semester }}</td>
 
-            {{-- STATUS BADGE --}}
-            <span class="position-absolute top-0 end-0 m-3 badge
-                {{ $course->status ? 'bg-success-subtle text-success' : 'bg-light text-muted border' }}
-                rounded-pill px-3 py-2">
-                {{ $course->status ? 'Active' : 'Inactive' }}
-            </span>
-
-            <div class="card-body p-4 pt-5 d-flex flex-column">
-
-                {{-- TITLE --}}
-                <div class="mb-3">
-                    <h5 class="fw-bold mb-1 text-dark">
-                        {{ $course->course_title }}
-                    </h5>
-
-                    <span class="badge bg-primary-subtle text-primary fw-semibold">
-                        {{ $course->course_code }}
-                    </span>
-                </div>
-
-                {{-- DESCRIPTION --}}
-                <p class="text-muted small flex-grow-1">
-                    {{ \Illuminate\Support\Str::limit($course->course_description, 120) ?? 'No description provided' }}
-                </p>
-
-                {{-- COURSE DETAILS --}}
-                <div class="row small gy-2 mb-3">
-
-                    <div class="col-4">
-                        <div class="text-muted">Level</div>
-                        <div class="fw-semibold">{{ $course->level }}</div>
-                    </div>
-
-                    <div class="col-4">
-                        <div class="text-muted">Semester</div>
-                        <div class="fw-semibold">{{ $course->semester }}</div>
-                    </div>
-
-                    <div class="col-4">
-                        <div class="text-muted">Credit Unit</div>
-                        <div class="fw-semibold">{{ $course->credit_unit }}</div>
-                    </div>
-
-                    <div class="col-6">
-                        <div class="text-muted">Course Type</div>
-                        <div class="fw-semibold">{{ $course->course_type }}</div>
-                    </div>
-
-                    <div class="col-6">
-                        <div class="text-muted">Programmes</div>
-                        <div class="fw-semibold text-truncate">
+                        {{-- PROGRAMMES --}}
+                        <td>
                             @forelse($course->programmes as $programme)
-                                <span class="badge bg-secondary-subtle text-secondary mb-1">
-                                    {{ $programme->programme_code }}
-                                </span>
+                                <span class="badge bg-primary">
+                                    {{ $programme->programme_name }}
+                                </span><br>
                             @empty
-                                N/A
+                                <span class="text-muted small">No Programme</span>
                             @endforelse
-                        </div>
-                    </div>
+                        </td>
 
-                </div>
+                        {{-- STATUS --}}
+                        <td>
+                            <span class="badge bg-{{ $course->status ? 'success' : 'danger' }}">
+                                {{ $course->status ? 'Active' : 'Inactive' }}
+                            </span>
+                        </td>
 
-                <hr class="my-3">
+                        {{-- ACTIONS --}}
+                        <td>
+                            <div class="d-flex gap-1">
 
-                {{-- ACTIONS --}}
-                <div class="d-flex gap-2 mt-auto">
+                                <button class="btn btn-sm btn-info"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#viewCourse{{ $course->id }}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
 
-                    <button class="btn btn-primary flex-fill"
-                            data-bs-toggle="modal"
-                            data-bs-target="#editCourse{{ $course->id }}">
-                        <i class="bi bi-pencil me-1"></i> Edit
-                    </button>
+                                <button class="btn btn-sm btn-warning"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editCourse{{ $course->id }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
 
-                    <button class="btn btn-danger flex-fill"
-                            data-bs-toggle="modal"
-                            data-bs-target="#deleteCourse{{ $course->id }}">
-                        <i class="bi bi-trash me-1"></i> Delete
-                    </button>
+                                <button class="btn btn-sm btn-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteCourse{{ $course->id }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
 
-                </div>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            No courses found
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
 
-            </div>
-        </div>
-
+        </table>
     </div>
-
-@empty
-    <div class="col-12 text-center py-5 text-muted">
-        <i class="bi bi-journal fs-1 d-block mb-3"></i>
-        No courses found
-    </div>
-@endforelse
 </div>
 
 {{-- PAGINATION --}}
@@ -172,6 +154,7 @@
 @foreach($courses as $course)
     @include('admin.courses.partials.edit-modal', ['course' => $course])
     @include('admin.courses.partials.delete-modal', ['course' => $course])
+    @include('admin.courses.partials.view-modal', ['course' => $course])
 @endforeach
 
 @endsection

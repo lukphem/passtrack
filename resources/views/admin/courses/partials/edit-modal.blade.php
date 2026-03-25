@@ -1,189 +1,191 @@
-@foreach($programmes as $programme)
-<div class="modal fade" id="editProgramme{{ $programme->id }}" tabindex="-1" aria-hidden="true">
+{{-- EDIT COURSE MODAL --}}
+<div class="modal fade" id="editCourse{{ $course->id }}" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow">
-            <form method="POST" action="{{ route('admin.programmes.update', $programme->id) }}" class="needs-validation" novalidate>
+        <div class="modal-content border-0 shadow-lg rounded-4">
+
+            <form method="POST" action="{{ route('admin.courses.update', $course->id) }}">
                 @csrf
                 @method('PUT')
 
-                {{-- Header --}}
-                <div class="modal-header bg-primary text-white">
+                {{-- HEADER --}}
+                <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title fw-bold">
-                        <i class="bi bi-pencil-square"></i> Edit Programme
+                        <i class="bi bi-pencil-square text-warning me-2"></i>
+                        Edit Course
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                {{-- Body --}}
-                <div class="modal-body">
-                    @if($errors->any() && session('edit_programme_error') && session('programme_id') == $programme->id)
+                {{-- BODY --}}
+
+                <div class="modal-body pt-2">
+
+                    @if($errors->any() && session('edit_course_error') == $course->id)
                         <div class="alert alert-danger">
-                            <strong>Please fix the errors below.</strong>
+                            <ul class="mb-0 small">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
                         </div>
                     @endif
 
                     <div class="row g-3">
-                        {{-- Programme Name --}}
+
+                        {{-- COURSE CODE --}}
                         <div class="col-md-6">
-                            <label class="form-label"><span class="text-danger">*</span> Programme Name</label>
-                            <input type="text" name="programme_name"
-                                   value="{{ old('programme_name', $programme->programme_name) }}"
-                                   class="form-control @error('programme_name') is-invalid @enderror"
-                                   placeholder="Enter Programme Name" required>
-                            @error('programme_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <label class="form-label fw-semibold">Course Code</label>
+                            <input type="text" name="course_code"
+                                   class="form-control"
+                                   value="{{ old('course_code', $course->course_code) }}" required>
                         </div>
 
-                        {{-- Programme Code --}}
+                        {{-- COURSE TITLE --}}
                         <div class="col-md-6">
-                            <label class="form-label"><span class="text-danger">*</span> Programme Code</label>
-                            <input type="text" name="programme_code"
-                                   value="{{ old('programme_code', $programme->programme_code) }}"
-                                   class="form-control @error('programme_code') is-invalid @enderror"
-                                   placeholder="Enter Programme Code e.g. BSC-CS" required>
-                            @error('programme_code') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <label class="form-label fw-semibold">Course Title</label>
+                            <input type="text" name="course_title"
+                                   class="form-control"
+                                   value="{{ old('course_title', $course->course_title) }}" required>
                         </div>
 
-                        {{-- Duration --}}
-                        <div class="col-md-6">
-                            <label class="form-label"><span class="text-danger">*</span> Duration (Years)</label>
-                            <input type="number" name="programme_duration"
-                                   value="{{ old('programme_duration', $programme->programme_duration) }}"
-                                   class="form-control @error('programme_duration') is-invalid @enderror"
-                                   min="1" max="10" required>
-                            @error('programme_duration') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        {{-- DESCRIPTION --}}
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea name="course_description"
+                                      class="form-control"
+                                      rows="3">{{ old('course_description', $course->course_description) }}</textarea>
                         </div>
 
-                        {{-- Level Type --}}
-                        <div class="col-md-6">
-                            <label class="form-label">Level Type</label>
-                            <select name="programme_level_type" class="form-select @error('programme_level_type') is-invalid @enderror">
-                                <option value="">Select Level</option>
-                                <option value="Undergraduate" {{ old('programme_level_type', $programme->programme_level_type)=='Undergraduate'?'selected':'' }}>Undergraduate</option>
-                                <option value="Postgraduate" {{ old('programme_level_type', $programme->programme_level_type)=='Postgraduate'?'selected':'' }}>Postgraduate</option>
+                        {{-- LEVEL --}}
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Level</label>
+                            <select name="level" class="form-select" required>
+                                @for($i=100; $i<=700; $i+=100)
+                                    <option value="{{ $i }}"
+                                        {{ old('level', $course->level) == $i ? 'selected' : '' }}>
+                                        {{ $i }}
+                                    </option>
+                                @endfor
                             </select>
-                            @error('programme_level_type') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        {{-- Start Date --}}
-                        <div class="col-md-6">
-                            <label class="form-label">Start Date</label>
-                            <input type="date" name="programme_start_date"
-                                   value="{{ old('programme_start_date', optional($programme->programme_start_date)->format('Y-m-d')) }}"
-                                   class="form-control @error('programme_start_date') is-invalid @enderror">
-                            @error('programme_start_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        {{-- SEMESTER --}}
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Semester</label>
+                            <select name="semester" class="form-select" required>
+                                <option value="First"
+                                    {{ old('semester', $course->semester) == 'First' ? 'selected' : '' }}>First</option>
+                                <option value="Second"
+                                    {{ old('semester', $course->semester) == 'Second' ? 'selected' : '' }}>Second</option>
+                                <option value="Third"
+                                    {{ old('semester', $course->semester) == 'Third' ? 'selected' : '' }}>Third</option>
+
+                            </select>
                         </div>
 
-                        {{-- Department --}}
+                        {{-- CREDIT --}}
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Credit Unit</label>
+                            <input type="number" name="credit_unit"
+                                   class="form-control"
+                                   value="{{ old('credit_unit', $course->credit_unit) }}" required>
+                        </div>
+
+                        {{-- TYPE --}}
                         <div class="col-md-6">
-                            <label class="form-label"><span class="text-danger">*</span> Department</label>
-                            <select name="department_id" class="form-select @error('department_id') is-invalid @enderror" required>
-                                <option value="">Select Department</option>
+                            <label class="form-label fw-semibold">Course Type</label>
+                            <select name="course_type" class="form-select" required>
+                                @foreach(['Core','Elective','General'] as $type)
+                                    <option value="{{ $type }}"
+                                        {{ old('course_type', $course->course_type) == $type ? 'selected' : '' }}>
+                                        {{ $type }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- STATUS --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="1" {{ old('status', $course->status) == 1 ? 'selected' : '' }}>Active</option>
+                                <option value="0" {{ old('status', $course->status) == 0 ? 'selected' : '' }}>Inactive</option>
+                            </select>
+                        </div>
+
+                        {{-- DEPARTMENT --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Department</label>
+                            <select name="department_id" class="form-select" required>
                                 @foreach($departments as $department)
-                                    <option value="{{ $department->id }}" {{ old('department_id', $programme->department_id) == $department->id ? 'selected' : '' }}>
+                                    <option value="{{ $department->id }}"
+                                        {{ old('department_id', $course->department_id) == $department->id ? 'selected' : '' }}>
                                         {{ $department->dept_name }}
                                     </option>
                                 @endforeach
                             </select>
-                            @error('department_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        {{-- Description --}}
+                        {{-- LECTURER --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Lecturer</label>
+                            <select name="lecturer_id" class="form-select" required>
+                                @foreach($lecturers as $lecturer)
+                                    <option value="{{ $lecturer->id }}"
+                                        {{ old('lecturer_id', $course->lecturer_id) == $lecturer->id ? 'selected' : '' }}>
+                                        {{ $lecturer->first_name }} {{ $lecturer->last_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- PROGRAMMES (PIVOT) --}}
                         <div class="col-12">
-                            <label class="form-label">Description</label>
-                            <textarea name="programme_description" rows="3"
-                                      class="form-control @error('programme_description') is-invalid @enderror"
-                                      placeholder="Enter Programme Description">{{ old('programme_description', $programme->programme_description) }}</textarea>
-                            @error('programme_description') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
+                            <label class="form-label fw-semibold">Programmes</label>
+                            <select name="programmes[]" class="form-select" multiple required>
 
-                        {{-- Accreditation Status --}}
-                        <div class="col-md-6">
-                            <label class="form-label">Accreditation Status</label>
-                            <select name="accreditation_status" class="form-select @error('accreditation_status') is-invalid @enderror">
-                                <option value="">Select Status</option>
-                                <option value="Full" {{ old('accreditation_status', $programme->accreditation_status)=='Full'?'selected':'' }}>Full</option>
-                                <option value="Interim" {{ old('accreditation_status', $programme->accreditation_status)=='Interim'?'selected':'' }}>Interim</option>
-                                <option value="None" {{ old('accreditation_status', $programme->accreditation_status)=='None'?'selected':'' }}>None</option>
+                                @foreach($programmes as $programme)
+                                    <option value="{{ $programme->id }}"
+                                        {{ in_array($programme->id,
+                                            old('programmes',
+                                                $course->programmes->pluck('id')->toArray()
+                                            )
+                                        ) ? 'selected' : '' }}>
+                                        {{ $programme->programme_name }}
+                                    </option>
+                                @endforeach
+
                             </select>
-                            @error('accreditation_status') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        {{-- Accreditation Year --}}
-                        <div class="col-md-6">
-                            <label class="form-label">Accreditation Year</label>
-                            <input type="number" name="accreditation_year"
-                                   value="{{ old('accreditation_year', $programme->accreditation_year) }}"
-                                   class="form-control @error('accreditation_year') is-invalid @enderror"
-                                   min="2000" max="{{ date('Y') }}">
-                            @error('accreditation_year') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        {{-- Industrial Training --}}
-                        <div class="col-md-6 form-check form-switch mt-2">
-                            <input type="checkbox" class="form-check-input" id="industrial_training_required_{{ $programme->id }}"
-                                   name="industrial_training_required" {{ old('industrial_training_required', $programme->industrial_training_required) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="industrial_training_required_{{ $programme->id }}">Industrial Training Required</label>
-                        </div>
-
-                        {{-- Industrial Training Level --}}
-                        <div class="col-md-6">
-                            <label class="form-label">Industrial Training Level</label>
-                            <input type="number" name="industrial_training_level"
-                                   id="industrial_training_level_{{ $programme->id }}"
-                                   value="{{ old('industrial_training_level', $programme->industrial_training_level) }}"
-                                   class="form-control @error('industrial_training_level') is-invalid @enderror"
-                                   min="1" max="10"
-                                   {{ old('industrial_training_required', $programme->industrial_training_required) ? '' : 'disabled' }}>
-                            @error('industrial_training_level') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        {{-- Status --}}
-                        <div class="col-md-6">
-                            <label class="form-label"><span class="text-danger">*</span> Status</label>
-                            <select name="programme_status" class="form-select @error('programme_status') is-invalid @enderror" required>
-                                <option value="1" {{ old('programme_status', $programme->programme_status) ? 'selected' : '' }}>Active</option>
-                                <option value="0" {{ !old('programme_status', $programme->programme_status) ? 'selected' : '' }}>Inactive</option>
-                            </select>
-                            @error('programme_status') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                     </div>
                 </div>
 
-                {{-- Footer --}}
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Update Programme</button>
+                {{-- FOOTER --}}
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-check-circle me-1"></i> Update Course
+                    </button>
                 </div>
+
             </form>
         </div>
     </div>
 </div>
-@endforeach
 
-{{-- JS for Edit Modals --}}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    @foreach($programmes as $programme)
-        const checkboxEdit{{ $programme->id }} = document.getElementById("industrial_training_required_{{ $programme->id }}");
-        const levelEdit{{ $programme->id }} = document.getElementById("industrial_training_level_{{ $programme->id }}");
+document.addEventListener("DOMContentLoaded", function() {
 
-        if (checkboxEdit{{ $programme->id }} && levelEdit{{ $programme->id }}) {
-            levelEdit{{ $programme->id }}.disabled = !checkboxEdit{{ $programme->id }}.checked;
+    @if(session('add_course_error'))
+        new bootstrap.Modal(document.getElementById('addCourseModal')).show();
+    @endif
 
-            checkboxEdit{{ $programme->id }}.addEventListener('change', function(){
-                levelEdit{{ $programme->id }}.disabled = !this.checked;
-                if(!this.checked) levelEdit{{ $programme->id }}.value = '';
-            });
-        }
+    @if(session('edit_course_error') && session('edit_course_id'))
+        new bootstrap.Modal(
+            document.getElementById('editCourse{{ session('edit_course_id') }}')
+        ).show();
+    @endif
 
-        @if($errors->any() && session('edit_programme_error') && session('programme_id') == $programme->id)
-            const editModalEl{{ $programme->id }} = document.getElementById("editProgramme{{ $programme->id }}");
-            if(editModalEl{{ $programme->id }}) {
-                const editModal{{ $programme->id }} = new bootstrap.Modal(editModalEl{{ $programme->id }});
-                editModal{{ $programme->id }}.show();
-            }
-        @endif
-    @endforeach
 });
 </script>
