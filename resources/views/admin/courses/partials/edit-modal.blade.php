@@ -8,9 +8,9 @@
                 @method('PUT')
 
                 {{-- HEADER --}}
-                <div class="modal-header border-0 pb-0">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title fw-bold">
-                        <i class="bi bi-pencil-square text-warning me-2"></i>
+                        <i class="bi bi-pencil-square"></i>
                         Edit Course
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -164,7 +164,7 @@
                 {{-- FOOTER --}}
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-warning">
+                    <button type="submit" class="btn btn-primary">
                         <i class="bi bi-check-circle me-1"></i> Update Course
                     </button>
                 </div>

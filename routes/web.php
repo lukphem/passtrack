@@ -1,32 +1,76 @@
 <?php
 
-use App\Http\Controllers\AcademicSemesterController;
-use App\Http\Controllers\AcademicSessionController;
-use App\Http\Controllers\CourseController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DepartmentController;
-use App\Http\Controllers\FacultyController;
-use App\Http\Controllers\Lecturer\LecturerDashboardController;
-use App\Http\Controllers\LecturerController;
-use App\Http\Controllers\LevelController;
-use App\Http\Controllers\ProgrammeController;
-use App\Http\Controllers\UserController;
+
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Admin\AcademicSemesterController;
+use App\Http\Controllers\Admin\AcademicSessionController;
+use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\FacultyController;
+use App\Http\Controllers\Admin\LevelController;
+use App\Http\Controllers\Admin\ProgrammeController;
+use App\Http\Controllers\Admin\LecturerController;
+use App\Http\Controllers\Lecturer\LecturerDashboardController;
+use App\Http\Controllers\Student\StudentDashboardController;
 
 
+/*
+|--------------------------------------------------------------------------
+| AUTH ROUTES
+|--------------------------------------------------------------------------
+*/
 
-
-
-Route::prefix('lecturer')->name('lecturer.')->group(function () {
-    Route::get('/dashboard', [LecturerDashboardController::class, 'index'])->name('dashboard');
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.store');
 });
 
-Route::prefix('admin')
-    ->name('admin.')
-    ->middleware([])
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+});
+
+/*
+|--------------------------------------------------------------------------
+| STUDENT ROUTES
+|--------------------------------------------------------------------------
+*/
+    Route::prefix('student')
+    ->name('student.')
+    ->middleware(['auth', 'role:student']) //'auth', 'role:student'
     ->group(function () {
 
+           // ================= DASHBOARD =================
+        Route::get('/dashboard', [StudentDashboardController::class, 'index']) ->name('dashboard');
 
+
+    });
+
+/*
+|--------------------------------------------------------------------------
+| LECTURER ROUTES
+|--------------------------------------------------------------------------
+*/
+Route::prefix('lecturer')
+    ->name('lecturer.')
+    ->middleware(['auth', 'role:lecturer']) //'auth', 'role:lecturer'
+    ->group(function () {
+
+        Route::get('/dashboard', [LecturerDashboardController::class, 'index']) ->name('dashboard');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| ADMIN ROUTES
+|--------------------------------------------------------------------------
+*/
+Route::name('admin.')
+    ->middleware(['auth', 'role:admin']) //'auth', 'role:admin'
+    ->group(function () {
 
         // ================= DASHBOARD =================
         Route::get('/dashboard', [DashboardController::class, 'index']) ->name('dashboard');
@@ -120,5 +164,17 @@ Route::prefix('admin')
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
+
+        // ================= STUDENTS =================
+        Route::get('/students', [StudentController::class, 'index'])->name('students.index');
+        Route::post('/students', [StudentController::class, 'store'])->name('students.store');
+        Route::put('/students/{student}', [StudentController::class, 'update'])->name('students.update');
+        Route::delete('/students/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
+        Route::post('/students/import', [StudentController::class, 'importStudents'])->name('students.import');
+        Route::get('/students/template', [StudentController::class, 'downloadTemplate'])->name('students.template');
+        Route::post('/students/{student}/promote', [StudentController::class, 'promote'])->name('students.promote');
+        Route::get('/students/export', [StudentController::class, 'export'])->name('students.export');
     });
+
+
 

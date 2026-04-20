@@ -1,5 +1,5 @@
 <div id="sidebar" class="sidebar p-3">
-    <h5 class="text-white mb-4 sidebar-title">Admin Dashboard</h5>
+    <h5 class="text-white mb-4 sidebar-title">Admin</h5>
 
     <ul class="nav flex-column gap-1">
 
@@ -78,7 +78,7 @@
                 <span class="link-text">Courses</span>
             </a>
         </li>
-        
+
         {{-- Course Registration --}}
         <li>
             <a href="{{ route('admin.academic-sessions.index') }}"
@@ -92,8 +92,8 @@
 
                         {{-- Students --}}
         <li>
-            <a href="{{ route('admin.users.index', ['role' => 'student']) }}"
-               class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.students.index') }}"
+               class="nav-link {{ request()->routeIs('admin.students.index') ? 'active' : '' }}">
                 <i class="bi bi-people"></i>
                 <span class="link-text">Students</span>
             </a>

@@ -76,4 +76,9 @@ class Programme extends Model
         return $this->belongsTo(Semester::class, 'current_semester_id');
     }
 
+    public function students()
+    {
+        return $this->hasMany(Student::class);
+    }
+
 }

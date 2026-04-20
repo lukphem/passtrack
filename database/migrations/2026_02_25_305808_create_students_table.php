@@ -10,34 +10,25 @@ return new class extends Migration
     {
         Schema::create('students', function (Blueprint $table) {
             $table->id();
-
-            // Link to users table (login account)
-            $table->foreignId('user_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
-
-            // Link to departments table
-            $table->foreignId('department_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
-
-            // Academic Information
-            $table->string('matric_number')->unique();
-            $table->integer('level'); // 100, 200, 300, 400
-            $table->string('programme')->nullable(); // BSc Computer Science
-            $table->year('admission_year');
-            $table->year('graduation_year')->nullable();
-
-            // Status
-            $table->enum('status', ['active', 'graduated', 'suspended', 'withdrawn'])
-                  ->default('active');
-
-            // Optional Extra Info
-            $table->date('date_of_birth')->nullable();
-            $table->string('gender')->nullable();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('programme_id')->nullable()->constrained()->nullOnDelete();
+            // Academic Info
+            $table->string('matric_no')->unique();
+            $table->enum('mode_of_admission', ['UTME','Direct Entry','Transfer','Pre-degree','Post-degree','Others'])->nullable();
+            $table->integer('entry_level')->nullable();
+            $table->integer('level')->nullable();
+            $table->string('admission_session')->nullable();   // e.g. 2023/2024
+            $table->string('graduation_session')->nullable();
+            $table->enum('status', ['active', 'graduated', 'suspended', 'withdrawn'])->default('active');
+            //  Personal Info
             $table->string('phone')->nullable();
+            $table->enum('gender', ['male','female','other'])->nullable();
+            $table->date('date_of_birth')->nullable();
             $table->string('address')->nullable();
-
+            $table->string('state_of_origin')->nullable();
+            $table->string('lga_of_origin')->nullable();
+            $table->string('nationality')->nullable();
+            $table->string('profile_photo')->nullable();
             $table->timestamps();
         });
     }

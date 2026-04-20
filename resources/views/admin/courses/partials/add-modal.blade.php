@@ -6,9 +6,9 @@
             <form action="{{ route('admin.courses.store') }}" method="POST">
                 @csrf
 
-                <div class="modal-header border-0 pb-0">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title fw-bold">
-                        <i class="bi bi-plus-circle me-2 text-primary"></i>
+                        <i class="bi bi-plus-circle"></i>
                         Add New Course
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

@@ -33,7 +33,14 @@ class Department extends Model
 
     public function students()
     {
-        return $this->hasMany(Student::class);
+        return $this->hasManyThrough(
+            Student::class,
+            Programme::class,
+            'department_id', // programmes.department_id
+            'programme_id',  // students.programme_id
+            'id',            // departments.id
+            'id'             // programmes.id
+        );
     }
 
     public function courses()
