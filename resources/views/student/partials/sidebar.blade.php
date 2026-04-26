@@ -2,27 +2,51 @@
 
     <h5 class="text-white mb-4 text-center">Student</h5>
 
-    <a href="{{ route('student.dashboard') }}" class="{{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
+    {{-- Dashboard --}}
+    <a href="{{ route('student.dashboard') }}"
+       class="{{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
         <i class="bi bi-speedometer2"></i>
         <span class="link-text">Dashboard</span>
     </a>
 
-    <a href="#">
+    {{-- Course Registration --}}
+    <a href="{{ route('student.courses.available') }}"
+       class="{{ request()->routeIs('student.courses.available') ? 'active' : '' }}">
+        <i class="bi bi-journal-plus"></i>
+        <span class="link-text">Register Courses</span>
+    </a>
+
+    {{-- My Courses --}}
+    <a href="{{ route('student.courses.mine') }}"
+       class="{{ request()->routeIs('student.courses.mine') ? 'active' : '' }}">
         <i class="bi bi-journal-bookmark"></i>
         <span class="link-text">My Courses</span>
     </a>
 
-    <a href="#">
+    {{-- Registration Status --}}
+    <a href="{{ route('student.registration.status') }}"
+       class="{{ request()->routeIs('student.registration.status') ? 'active' : '' }}">
+        <i class="bi bi-check-circle"></i>
+        <span class="link-text">Registration Status</span>
+    </a>
+
+    {{-- Results --}}
+    <a href="#"
+       class="{{ request()->is('student/results*') ? 'active' : '' }}">
         <i class="bi bi-clipboard-data"></i>
         <span class="link-text">Results</span>
     </a>
 
-    <a href="#">
+    {{-- Attendance --}}
+    <a href="#"
+       class="{{ request()->is('student/attendance*') ? 'active' : '' }}">
         <i class="bi bi-calendar-check"></i>
         <span class="link-text">Attendance</span>
     </a>
 
-    <a href="#">
+    {{-- Timetable --}}
+    <a href="#"
+       class="{{ request()->is('student/timetable*') ? 'active' : '' }}">
         <i class="bi bi-clock-history"></i>
         <span class="link-text">Timetable</span>
     </a>

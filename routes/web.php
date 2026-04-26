@@ -15,7 +15,10 @@ use App\Http\Controllers\Admin\LevelController;
 use App\Http\Controllers\Admin\ProgrammeController;
 use App\Http\Controllers\Admin\LecturerController;
 use App\Http\Controllers\Lecturer\LecturerDashboardController;
+use App\Http\Controllers\Admin\AdminCourseRegistrationController;
 use App\Http\Controllers\Student\StudentDashboardController;
+use App\Http\Controllers\Student\StudentCourseRegistrationController;
+
 
 
 /*
@@ -25,8 +28,8 @@ use App\Http\Controllers\Student\StudentDashboardController;
 */
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.store');
+    Route::get('portal/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('portal/login', [AuthenticatedSessionController::class, 'store'])->name('login.store');
 });
 
 Route::middleware('auth')->group(function () {
@@ -46,6 +49,15 @@ Route::middleware('auth')->group(function () {
            // ================= DASHBOARD =================
         Route::get('/dashboard', [StudentDashboardController::class, 'index']) ->name('dashboard');
 
+
+            // ================= COURSE REGISTRATION =================
+        Route::get('/registration-status', [StudentCourseRegistrationController::class, 'registrationStatus'])->name('registration.status');
+        Route::get('/available-courses', [StudentCourseRegistrationController::class, 'availableCourses'])->name('courses.available');
+        Route::get('/my-courses', [StudentCourseRegistrationController::class, 'myCourses'])->name('courses.mine');
+        Route::get('/register-courses', [StudentCourseRegistrationController::class, 'registerCourses'])->name('courses.register.index');
+        Route::post('/register-courses', [StudentCourseRegistrationController::class, 'registerCourses'])->name('courses.register');
+        Route::delete('/drop-course/{course_id}', [StudentCourseRegistrationController::class, 'dropCourse'])->name('courses.drop');
+        Route::get('/available-courses/expand', [StudentCourseRegistrationController::class, 'expandCourses'])->name('courses.expand');
 
     });
 
@@ -69,7 +81,7 @@ Route::prefix('lecturer')
 |--------------------------------------------------------------------------
 */
 Route::name('admin.')
-    ->middleware(['auth', 'role:admin']) //'auth', 'role:admin'
+    ->middleware([]) //'auth', 'role:admin'
     ->group(function () {
 
         // ================= DASHBOARD =================
@@ -174,7 +186,15 @@ Route::name('admin.')
         Route::get('/students/template', [StudentController::class, 'downloadTemplate'])->name('students.template');
         Route::post('/students/{student}/promote', [StudentController::class, 'promote'])->name('students.promote');
         Route::get('/students/export', [StudentController::class, 'export'])->name('students.export');
-    });
+
+
+        // ================= COURSE REGISTRATION OVERRIDE =================
+        Route::get('/student/{student}', [AdminCourseRegistrationController::class, 'viewStudentCourses'])->name('view');    // Add course for student
+        Route::post('/student/{student}/add', [AdminCourseRegistrationController::class, 'addCourse'])->name('add');
+        Route::delete('/student/{student}/remove/{course}', [AdminCourseRegistrationController::class, 'removeCourse'])->name('remove');
+        Route::post('/student/{student}/sync', [AdminCourseRegistrationController::class, 'syncCourses'])->name('sync');
+
+ });
 
 
 

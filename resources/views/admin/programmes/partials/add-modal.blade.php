@@ -14,7 +14,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
 
-                {{-- Body (scrollable) --}}
+                {{-- Body --}}
                 <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
 
                     @if($errors->any() && session('add_programme_error'))
@@ -32,33 +32,54 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label"><span class="text-danger">*</span> Programme Name</label>
-                            <input type="text" name="programme_name" value="{{ old('programme_name') }}"
-                                   class="form-control @error('programme_name') is-invalid @enderror" required>
+                            <label class="form-label">Programme Name *</label>
+                            <input type="text" name="programme_name"
+                                   value="{{ old('programme_name') }}"
+                                   class="form-control @error('programme_name') is-invalid @enderror"
+                                   required>
+                            @error('programme_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label"><span class="text-danger">*</span> Programme Code</label>
-                            <input type="text" name="programme_code" value="{{ old('programme_code') }}"
-                                   class="form-control @error('programme_code') is-invalid @enderror" required>
+                            <label class="form-label">Programme Code *</label>
+                            <input type="text" name="programme_code"
+                                   value="{{ old('programme_code') }}"
+                                   class="form-control @error('programme_code') is-invalid @enderror"
+                                   required>
+                            @error('programme_code')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label"><span class="text-danger">*</span> Department</label>
-                            <select name="department_id" class="form-select @error('department_id') is-invalid @enderror" required>
+                            <label class="form-label">Department *</label>
+                            <select name="department_id"
+                                    class="form-select @error('department_id') is-invalid @enderror"
+                                    required>
                                 <option value="">Select Department</option>
                                 @foreach ($departments as $department)
-                                    <option value="{{ $department->id }}" {{ old('department_id') == $department->id ? 'selected' : '' }}>
+                                    <option value="{{ $department->id }}"
+                                        {{ old('department_id') == $department->id ? 'selected' : '' }}>
                                         {{ $department->dept_name }}
                                     </option>
                                 @endforeach
                             </select>
+                            @error('department_id')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label"><span class="text-danger">*</span> Duration (Years)</label>
-                            <input type="number" name="programme_duration" value="{{ old('programme_duration') }}"
-                                   class="form-control @error('programme_duration') is-invalid @enderror" min="1" max="10" required>
+                            <label class="form-label">Duration (Years) *</label>
+                            <input type="number" name="programme_duration"
+                                   value="{{ old('programme_duration') }}"
+                                   class="form-control @error('programme_duration') is-invalid @enderror"
+                                   min="1" max="10" required>
+                            @error('programme_duration')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         <div class="col-md-3">
@@ -78,7 +99,9 @@
 
                         <div class="col-md-6">
                             <label class="form-label">Start Date</label>
-                            <input type="date" name="programme_start_date" value="{{ old('programme_start_date') }}" class="form-control">
+                            <input type="date" name="programme_start_date"
+                                   value="{{ old('programme_start_date') }}"
+                                   class="form-control">
                         </div>
 
                         <div class="col-md-6">
@@ -91,12 +114,6 @@
                             </select>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label">Accreditation Year</label>
-                            <input type="number" name="accreditation_year" value="{{ old('accreditation_year') }}"
-                                   class="form-control" min="2000" max="{{ date('Y') }}">
-                        </div>
-
                         {{-- INDUSTRIAL TRAINING --}}
                         <div class="col-12 mt-3">
                             <h6 class="fw-bold text-primary">Industrial Training</h6>
@@ -105,10 +122,11 @@
 
                         <div class="col-md-6 d-flex align-items-center">
                             <input type="hidden" name="industrial_training_required" value="0">
+
                             <div class="form-check form-switch">
                                 <input class="form-check-input"
                                        type="checkbox"
-                                       id="industrial_training_required_add"
+                                       id="industrial_training_required"
                                        name="industrial_training_required"
                                        value="1"
                                        {{ old('industrial_training_required') ? 'checked' : '' }}>
@@ -119,11 +137,13 @@
                         <div class="col-md-6">
                             <label class="form-label">Training Level</label>
                             <input type="number"
+                                   id="industrial_training_level"
                                    name="industrial_training_level"
-                                   id="industrial_training_level_add"
                                    value="{{ old('industrial_training_level') }}"
-                                   class="form-control"
-                                   {{ old('industrial_training_required') ? '' : 'disabled' }}>
+                                   class="form-control @error('industrial_training_level') is-invalid @enderror">
+                            @error('industrial_training_level')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         {{-- SETTINGS --}}
@@ -134,6 +154,7 @@
 
                         <div class="col-md-6 d-flex align-items-center">
                             <input type="hidden" name="use_custom_academic_settings" value="0">
+
                             <div class="form-check form-switch">
                                 <input class="form-check-input"
                                        type="checkbox"
@@ -146,6 +167,7 @@
 
                         <div class="col-md-6 d-flex align-items-center">
                             <input type="hidden" name="programme_status" value="0">
+
                             <div class="form-check form-switch">
                                 <input class="form-check-input"
                                        type="checkbox"
@@ -159,7 +181,9 @@
                         {{-- DESCRIPTION --}}
                         <div class="col-12 mt-3">
                             <label class="form-label">Description</label>
-                            <textarea name="programme_description" rows="3" class="form-control">{{ old('programme_description') }}</textarea>
+                            <textarea name="programme_description"
+                                      rows="3"
+                                      class="form-control">{{ old('programme_description') }}</textarea>
                         </div>
 
                     </div>
@@ -176,35 +200,38 @@
     </div>
 </div>
 
-{{-- Script for Industrial Training --}}
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const addModalEl = document.getElementById('addProgrammeModal');
-    if (!addModalEl) return;
 
-    const form = addModalEl.querySelector('form');
-    const checkbox = document.getElementById('industrial_training_required_add');
-    const level = document.getElementById('industrial_training_level_add');
+    const modal = document.getElementById('addProgrammeModal');
+    const checkbox = document.getElementById('industrial_training_required');
+    const level = document.getElementById('industrial_training_level');
 
-    if(level && checkbox){
+    if (!modal || !checkbox || !level) return;
+
+    function toggleLevel() {
         level.disabled = !checkbox.checked;
-        checkbox.addEventListener('change', function () {
-            level.disabled = !this.checked;
-            if(!this.checked) level.value = '';
-        });
+
+        if (!checkbox.checked) {
+            level.value = '';
+        }
     }
 
-    addModalEl.addEventListener('hidden.bs.modal', function () {
-        if(form){
-            form.reset();
-            form.querySelectorAll('.is-invalid').forEach(function(el){
-                el.classList.remove('is-invalid');
-            });
-        }
+    // run on load (VERY IMPORTANT for old() values)
+    toggleLevel();
+
+    checkbox.addEventListener('change', toggleLevel);
+
+    // reset modal properly
+    modal.addEventListener('hidden.bs.modal', function () {
+        modal.querySelector('form').reset();
+        level.disabled = true;
     });
 
     @if(session('add_programme_error'))
-        new bootstrap.Modal(addModalEl).show();
+        new bootstrap.Modal(modal).show();
     @endif
+
 });
 </script>

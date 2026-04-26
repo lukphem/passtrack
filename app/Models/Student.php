@@ -34,4 +34,11 @@ class Student extends Model
     {
         return $this->belongsTo(Programme::class);
     }
+
+        public function courses()
+    {
+        return $this->belongsToMany(Course::class, 'coursereg_student')
+            ->withPivot('academic_session_id', 'semester_id')
+            ->withTimestamps();
+    }
 }
