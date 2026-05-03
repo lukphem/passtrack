@@ -28,8 +28,8 @@
 
             <div class="col-md-3">
                 <strong>Status:</strong>
-                <span class="badge bg-{{ isset($setting) && $setting->registration_allowed ? 'success' : 'danger' }}">
-                    {{ isset($setting) && $setting->registration_allowed ? 'OPEN' : 'CLOSED' }}
+                <span class="badge bg-{{ $isOpen ? 'success' : 'danger' }}">
+                    {{ $isOpen ? 'OPEN' : 'CLOSED' }}
                 </span>
             </div>
 
@@ -40,18 +40,42 @@
 
 {{-- ================= FLASH MESSAGES ================= --}}
 @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+    <div class="alert alert-success alert-dismissible fade show shadow-sm">
         <strong>Success!</strong> {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 @endif
 
 @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm">
         <strong>Error!</strong> {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 @endif
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body d-flex justify-content-between align-items-center">
+
+        <div>
+            <strong>Total Courses:</strong> {{ $totalRegisteredCourses }}
+            <span class="mx-2">|</span>
+            <strong>Total Units:</strong>
+            <span class="badge bg-primary">
+                {{ $totalRegisteredUnits }}
+            </span>
+        </div>
+
+        <div>
+            <a href="{{ route('student.courses.print') }}"
+               class="btn btn-outline-dark btn-sm"
+               target="_blank">
+                <i class="bi bi-printer"></i> Print Slip
+            </a>
+        </div>
+
+    </div>
+</div>
+
 {{-- ================= MODE SWITCH ================= --}}
 <div class="d-flex justify-content-between align-items-center mb-3">
 
@@ -63,7 +87,7 @@
         </a>
 
         <a href="{{ route('student.courses.available', ['expand' => 1]) }}"
-           class="btn btn-sm {{ request()->has('expand') ? 'btn-warning' : 'btn-outline-warning' }}">
+           class="btn btn-sm {{ request()->has('expand') ? 'btn-warning text-dark' : 'btn-outline-warning' }}">
             Expand Mode (Carry Over / Extra Courses)
         </a>
 
@@ -113,9 +137,10 @@
                 <div class="col-md-3">
                     <label class="form-label small">Semester</label>
                     <select name="semester" class="form-select form-select-sm">
-                        <option value="">All Semesters</option>
-                        <option value="First" {{ request('semester') == 'First' ? 'selected' : '' }}>First</option>
-                        <option value="Second" {{ request('semester') == 'Second' ? 'selected' : '' }}>Second</option>
+                        <option value="{{ $currentSemester->semester_name }}"
+                            {{ request('semester') == $currentSemester->semester_name ? 'selected' : '' }}>
+                            {{ $currentSemester->semester_name ?? 'N/A' }}
+                        </option>
                     </select>
                 </div>
 
@@ -154,6 +179,8 @@
                     <th>Semester</th>
                     <th>Credit</th>
                     <th>Lecturer</th>
+                    <th>Action</th>
+
                 </tr>
             </thead>
 
@@ -198,11 +225,27 @@
                         {{ $course->lecturer->last_name ?? '' }}
                     </td>
 
+                    <td>
+                            @if($already)
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#dropModal"
+                                        data-course-id="{{ $course->id }}"
+                                        data-course-code="{{ $course->course_code }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+
+                        @else
+                            <span class="text-muted">--</span>
+                        @endif
+                    </td>
+
                 </tr>
 
             @empty
                 <tr>
-                    <td colspan="8" class="text-center text-muted py-5">
+                    <td colspan="{{ $isOpen ? 9 : 8 }}" class="text-center text-muted py-5">
                         No courses available for this selection
                     </td>
                 </tr>
@@ -226,5 +269,56 @@
 </form>
 
 </div>
+
+{{-- ================= DROP MODAL ================= --}}
+<div class="modal fade" id="dropModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <form method="POST" id="dropForm">
+                @csrf
+                @method('DELETE')
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Drop Course</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    Are you sure you want to drop
+                    <strong id="courseCode"></strong>?
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Yes, Drop</button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const dropModal = document.getElementById('dropModal');
+
+    dropModal.addEventListener('show.bs.modal', function (event) {
+
+        const button = event.relatedTarget;
+
+        const courseId = button.getAttribute('data-course-id');
+        const courseCode = button.getAttribute('data-course-code');
+
+        document.getElementById('courseCode').textContent = courseCode;
+
+        document.getElementById('dropForm').action =
+    "{{ route('student.courses.drop', ':id') }}".replace(':id', courseId);
+    });
+
+});
+</script>
 
 @endsection

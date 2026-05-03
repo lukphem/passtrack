@@ -81,8 +81,8 @@
 
         {{-- Course Registration --}}
         <li>
-            <a href="{{ route('admin.academic-sessions.index') }}"
-               class="nav-link {{ request()->routeIs('admin.academic-sessions.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.course-registration.index') }}"
+               class="nav-link {{ request()->routeIs('admin.courses-registration.*') ? 'active' : '' }}">
                 <i class="bi bi-pencil-square"></i>
                 <span class="link-text">Course Registration</span>
             </a>

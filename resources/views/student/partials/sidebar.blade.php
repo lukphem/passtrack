@@ -16,18 +16,13 @@
         <span class="link-text">Register Courses</span>
     </a>
 
-    {{-- My Courses --}}
-    <a href="{{ route('student.courses.mine') }}"
-       class="{{ request()->routeIs('student.courses.mine') ? 'active' : '' }}">
-        <i class="bi bi-journal-bookmark"></i>
-        <span class="link-text">My Courses</span>
-    </a>
+
 
     {{-- Registration Status --}}
-    <a href="{{ route('student.registration.status') }}"
-       class="{{ request()->routeIs('student.registration.status') ? 'active' : '' }}">
+    <a href="{{ route('student.courses.index') }}"
+       class="{{ request()->routeIs('student.courses.index') ? 'active' : '' }}">
         <i class="bi bi-check-circle"></i>
-        <span class="link-text">Registration Status</span>
+        <span class="link-text">Registration History</span>
     </a>
 
     {{-- Results --}}

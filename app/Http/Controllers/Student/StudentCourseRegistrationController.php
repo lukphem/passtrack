@@ -14,6 +14,76 @@ use Illuminate\Support\Facades\DB;
 
 class StudentCourseRegistrationController extends Controller
 {
+
+public function index()
+{
+    $student = auth()->user()->student;
+
+    $registrations = DB::table('coursereg_student')
+        ->join('academic_sessions', 'coursereg_student.session_id', '=', 'academic_sessions.id')
+        ->join('semesters', 'coursereg_student.semester_id', '=', 'semesters.id')
+        ->join('courses', 'coursereg_student.course_id', '=', 'courses.id')
+        ->where('coursereg_student.student_id', $student->id)
+        ->select(
+            'academic_sessions.id as session_id',
+            'academic_sessions.session_name',
+            'semesters.id as semester_id',
+            'semesters.semester_name',
+            DB::raw('COUNT(coursereg_student.course_id) as total_courses'),
+            DB::raw('SUM(courses.credit_unit) as total_units'),
+            DB::raw('MIN(coursereg_student.created_at) as registered_at')
+        )
+        ->groupBy(
+            'academic_sessions.id',
+            'academic_sessions.session_name',
+            'semesters.id',
+            'semesters.semester_name'
+        )
+        ->orderByDesc('academic_sessions.id')
+        ->orderByDesc('semesters.id')
+        ->get();
+
+    return view('student.courses.index', compact('registrations'));
+}
+    // =========================
+    // GET ACTIVE SETTING (ARRAY BASED)
+    // =========================
+    private function getActiveSetting($programme)
+    {
+        if (!$programme) return null;
+
+        // CASE 1: PROGRAMME CUSTOM
+        if ($programme->use_custom_academic_settings) {
+
+            $setting = ProgrammeAcademicSetting::with(['academicSession', 'semester'])
+                ->where('programme_id', $programme->id)
+                ->whereHas('academicSession', fn($q) => $q->where('is_active', true))
+                ->whereHas('semester', fn($q) => $q->where('is_active', true))
+                ->latest()
+                ->first();
+
+            if ($setting) {
+                return [
+                    'academicSession' => $setting->academicSession,
+                    'semester' => $setting->semester,
+                ];
+            }
+        }
+
+        // CASE 2: GENERAL CALENDAR
+        $currentSession = AcademicSession::where('is_active', true)->first();
+        $currentSemester = Semester::where('is_active', true)->first();
+
+        if ($currentSession && $currentSemester) {
+            return [
+                'academicSession' => $currentSession,
+                'semester' => $currentSemester,
+            ];
+        }
+
+        return null;
+    }
+
     // =========================
     // REGISTRATION WINDOW CHECK
     // =========================
@@ -21,32 +91,24 @@ class StudentCourseRegistrationController extends Controller
     {
         $programme = $student->programme;
 
-        if (!$programme) return false;
+        $setting = $this->getActiveSetting($programme);
 
-        $session = AcademicSession::where('is_active', true)->first();
-        $semester = Semester::where('is_active', true)->first();
+        if (!$setting) return false;
 
-        if (!$session || !$semester) return false;
+        $semester = $setting['semester'] ?? null;
 
-        $setting = ProgrammeAcademicSetting::where('programme_id', $programme->id)
-            ->where('academic_session_id', $session->id)
-            ->where('semester_id', $semester->id)
-            ->first();
+        if (!$semester) return false;
 
-        if (
-            !$setting ||
-            !$setting->registration_allowed ||
-            !$setting->registration_start_date ||
-            !$setting->registration_end_date
-        ) {
-            return false;
-        }
-
-        return now()->between(
-            $setting->registration_start_date,
-            $setting->registration_end_date
-        );
+        return $semester->registration_allowed
+            && $semester->registration_start_date
+            && $semester->registration_end_date
+            && now()->between(
+                $semester->registration_start_date,
+                $semester->registration_end_date
+            );
     }
+
+
 
     // =========================
     // AVAILABLE COURSES
@@ -63,52 +125,66 @@ class StudentCourseRegistrationController extends Controller
 
         $departments = Department::orderBy('dept_name')->get();
 
-        $setting = ProgrammeAcademicSetting::with(['academicSession', 'semester'])
-            ->where('programme_id', $programme->id)
-            ->whereHas('academicSession', fn($q) => $q->where('is_active', true))
-            ->whereHas('semester', fn($q) => $q->where('is_active', true))
-            ->first();
+        $setting = $this->getActiveSetting($programme);
 
-        $currentSession = $setting?->academicSession;
-        $currentSemester = $setting?->semester;
+        $currentSession = $setting['academicSession'] ?? null;
+        $currentSemester = $setting['semester'] ?? null;
 
-        $registeredCourseIds = $student->courses()
-            ->pluck('courses.id')
-            ->toArray();
+        // Get registered course IDs for the current session and semester
+        $registeredCourses = $student->courses()
+            ->wherePivot('session_id', $currentSession->id)
+            ->wherePivot('semester_id', $currentSemester->id)
+            ->get();
+
+        $registeredCourseIds = $registeredCourses->pluck('id')->toArray();
+        $totalRegisteredUnits = $registeredCourses->sum('credit_unit');
+        $totalRegisteredCourses = $registeredCourses->count();
+
 
         $query = Course::with(['lecturer', 'department'])
             ->where('status', 1);
 
-        // PROGRAMME TYPE RULE
+        // PROGRAMME TYPE FILTER
         $query->whereHas('programmes', function ($q) use ($programme) {
             $q->where('programme_level_type', $programme->programme_level_type);
         });
 
-        $isExpand = $request->filled('expand') && $request->expand == 1;
+        $isExpand = $request->boolean('expand');
 
-        if (!$isExpand) {
+     if (!$isExpand) {
 
-            // NORMAL MODE
-            $query->whereHas('programmes', function ($q) use ($programme) {
-                $q->where('programmes.id', $programme->id);
+        $query->where(function ($q) use ($programme, $student, $registeredCourseIds) {
+
+            // Programme courses for current level
+            $q->where(function ($inner) use ($programme, $student) {
+                $inner->whereHas('programmes', function ($q2) use ($programme) {
+                    $q2->where('programmes.id', $programme->id);
+                })
+                ->where('level', '<=', $student->level);
             });
 
-            $query->where('level', $student->level);
+            // OR already registered courses (FORCE SHOW)
+            if (!empty($registeredCourseIds)) {
+                $q->orWhereIn('id', $registeredCourseIds);
+            }
+
+        });
+
 
         } else {
-
-            // EXPAND MODE (department + lower/equal level only)
+            // EXPAND MODE
             if ($request->filled('department_id')) {
                 $query->where('department_id', $request->department_id);
             }
 
+            $query->where('level', '<=', $student->level);
+
             if ($request->filled('level')) {
                 $query->where('level', '<=', $request->level);
-            } else {
-                $query->where('level', '<=', $student->level);
             }
         }
 
+        // SEMESTER FILTER
         if ($currentSemester) {
             $query->where('semester', $currentSemester->semester_name);
         }
@@ -124,24 +200,15 @@ class StudentCourseRegistrationController extends Controller
             'registeredCourseIds' => $registeredCourseIds,
             'currentSession' => $currentSession,
             'currentSemester' => $currentSemester,
-            'isExpand' => $isExpand
+            'isExpand' => $isExpand,
+            'isOpen' => $this->registrationIsOpen($student),
+            'totalRegisteredUnits' => $totalRegisteredUnits,
+            'totalRegisteredCourses' => $totalRegisteredCourses,
         ]);
     }
 
     // =========================
-    // EXPAND MODE ROUTE
-    // =========================
-    public function expandCourses(Request $request)
-    {
-        return redirect()->route('student.courses.available', [
-            'expand' => 1,
-            'department_id' => $request->department_id,
-            'level' => $request->level
-        ]);
-    }
-
-    // =========================
-    // REGISTER COURSES (FULL SECURITY)
+    // REGISTER COURSES
     // =========================
     public function registerCourses(Request $request)
     {
@@ -151,17 +218,23 @@ class StudentCourseRegistrationController extends Controller
             return back()->with('error', 'Registration window is closed.');
         }
 
-        // VALIDATION (NO TRUST FROM FRONTEND)
         $request->validate([
             'course_ids' => ['required', 'array', 'min:1'],
             'course_ids.*' => ['integer', 'exists:courses,id'],
         ]);
 
-        $session = AcademicSession::where('is_active', true)->first();
-        $semester = Semester::where('is_active', true)->first();
+        $programme = $student->programme;
+        $setting = $this->getActiveSetting($programme);
+
+        if (!$setting) {
+            return back()->with('error', 'Academic setting not found.');
+        }
+
+        $session = $setting['academicSession'] ?? null;
+        $semester = $setting['semester'] ?? null;
 
         if (!$session || !$semester) {
-            return back()->with('error', 'Invalid academic calendar.');
+            return back()->with('error', 'Invalid academic session or semester.');
         }
 
         $courses = Course::whereIn('id', $request->course_ids)->get();
@@ -173,6 +246,7 @@ class StudentCourseRegistrationController extends Controller
         // CREDIT LIMIT
         $totalUnits = $courses->sum('credit_unit');
         $maxUnits = ($student->level == 500) ? 28 : 24;
+
 
         if ($totalUnits > $maxUnits) {
             return back()->with('error', "Maximum credit exceeded ({$maxUnits}).");
@@ -186,12 +260,10 @@ class StudentCourseRegistrationController extends Controller
 
             foreach ($courses as $course) {
 
-                // LEVEL CONTROL (NO HIGHER LEVEL)
                 if ($course->level > $student->level) {
                     throw new \Exception("Cannot register higher level course: {$course->course_code}");
                 }
 
-                // SEMESTER SAFETY CHECK
                 if ($course->semester !== $semester->semester_name) {
                     throw new \Exception("Semester mismatch: {$course->course_code}");
                 }
@@ -219,7 +291,7 @@ class StudentCourseRegistrationController extends Controller
     // =========================
     // DROP COURSE
     // =========================
-    public function dropCourse($course_id)
+     public function dropCourse($course_id)
     {
         $student = auth()->user()->student;
 
@@ -229,6 +301,35 @@ class StudentCourseRegistrationController extends Controller
 
         $student->courses()->detach($course_id);
 
-        return back()->with('success', 'Course removed successfully.');
+        return back()->with('success', 'Course dropped successfully.');
+    }
+
+
+    public function printCourses()
+    {
+        $student = auth()->user()->student;
+        $programme = $student->programme;
+
+        $setting = $this->getActiveSetting($programme);
+
+        $session = $setting['academicSession'] ?? null;
+        $semester = $setting['semester'] ?? null;
+
+        $registeredCourses = $student->courses()
+            ->wherePivot('session_id', $session->id)
+            ->wherePivot('semester_id', $semester->id)
+            ->with('lecturer')
+            ->get();
+
+        $totalUnits = $registeredCourses->sum('credit_unit');
+
+        return view('student.courses.print', compact(
+            'student',
+            'programme',
+            'session',
+            'semester',
+            'registeredCourses',
+            'totalUnits'
+        ));
     }
 }

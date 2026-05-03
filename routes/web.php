@@ -49,8 +49,8 @@ Route::middleware('auth')->group(function () {
            // ================= DASHBOARD =================
         Route::get('/dashboard', [StudentDashboardController::class, 'index']) ->name('dashboard');
 
-
             // ================= COURSE REGISTRATION =================
+        Route::get('/course-registrations', [StudentCourseRegistrationController::class, 'index'])->name('courses.index');
         Route::get('/registration-status', [StudentCourseRegistrationController::class, 'registrationStatus'])->name('registration.status');
         Route::get('/available-courses', [StudentCourseRegistrationController::class, 'availableCourses'])->name('courses.available');
         Route::get('/my-courses', [StudentCourseRegistrationController::class, 'myCourses'])->name('courses.mine');
@@ -58,7 +58,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/register-courses', [StudentCourseRegistrationController::class, 'registerCourses'])->name('courses.register');
         Route::delete('/drop-course/{course_id}', [StudentCourseRegistrationController::class, 'dropCourse'])->name('courses.drop');
         Route::get('/available-courses/expand', [StudentCourseRegistrationController::class, 'expandCourses'])->name('courses.expand');
-
+        Route::get('/student/courses/print', [StudentCourseRegistrationController::class, 'printCourses'])->name('courses.print');
     });
 
 /*
@@ -189,11 +189,11 @@ Route::name('admin.')
 
 
         // ================= COURSE REGISTRATION OVERRIDE =================
-        Route::get('/student/{student}', [AdminCourseRegistrationController::class, 'viewStudentCourses'])->name('view');    // Add course for student
-        Route::post('/student/{student}/add', [AdminCourseRegistrationController::class, 'addCourse'])->name('add');
-        Route::delete('/student/{student}/remove/{course}', [AdminCourseRegistrationController::class, 'removeCourse'])->name('remove');
-        Route::post('/student/{student}/sync', [AdminCourseRegistrationController::class, 'syncCourses'])->name('sync');
-
+        Route::get('course-registration', [AdminCourseRegistrationController::class, 'index'])->name('course-registration.index');
+        Route::get('/course-registration/{student}', [AdminCourseRegistrationController::class, 'manageStudent'])->name('course-registration.manage');
+        Route::post('/course-registration/{student}/add', [AdminCourseRegistrationController::class, 'registerCourses'])->name('course-registration.addcourse');
+        Route::delete('/course-registration/{student}/course/{course}',[AdminCourseRegistrationController::class, 'dropCourse'])->name('course-registration.dropcourse');
+        Route::get('/course-registration/{student}/print', [AdminCourseRegistrationController::class, 'printCourses'])->name('course-registration.print');
  });
 
 
