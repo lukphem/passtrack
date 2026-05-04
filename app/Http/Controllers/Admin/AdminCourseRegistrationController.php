@@ -17,37 +17,63 @@ class AdminCourseRegistrationController extends Controller
     // =========================
     // INDEX - SEARCH STUDENT
     // =========================
-    public function index(Request $request)
+        public function index(Request $request)
     {
-        $query = Student::with(['user', 'programme']);
+        $students = collect(); // default empty
 
-        // SEARCH
-        if ($request->filled('search')) {
-            $search = $request->search;
+        $hasFilter =
+            $request->filled('search') ||
+            $request->filled('programme_id') ||
+            $request->filled('department_id');
 
-            $query->where(function ($q) use ($search) {
-                $q->where('matric_no', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($u) use ($search) {
-                      $u->where('first_name', 'like', "%{$search}%")
-                        ->orWhere('last_name', 'like', "%{$search}%");
-                  });
-            });
-        }
+        if ($hasFilter) {
 
-        // FILTER PROGRAMME
-        if ($request->filled('programme_id')) {
-            $query->where('programme_id', $request->programme_id);
+            $query = \App\Models\Student::query()
+                ->with(['user', 'programme.department']); // ✅ FIXED
+
+            // ================= SEARCH =================
+            if ($request->filled('search')) {
+                $search = $request->search;
+
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('user', function ($q2) use ($search) {
+                        $q2->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                    })
+                    ->orWhere('matric_no', 'like', "%{$search}%");
+                });
+            }
+
+            // ================= PROGRAMME =================
+            if ($request->filled('programme_id')) {
+                $query->where('programme_id', $request->programme_id);
+            }
+
+            // ================= DEPARTMENT (FIXED) =================
+            if ($request->filled('department_id')) {
+                $query->whereHas('programme.department', function ($q) use ($request) {
+                    $q->where('id', $request->department_id);
+                });
+            }
+
+            $students = $query->latest()
+                ->paginate(10)
+                ->withQueryString();
         }
 
         return view('admin.course-registration.index', [
-            'students' => $query->paginate(20),
-            'programmes' => Programme::orderBy('programme_name')->get(),
-            'departments' => Department::orderBy('dept_name')->get(),
-            'sessions' => AcademicSession::latest()->get(),
-            'semesters' => Semester::all(),
+            'students' => $students,
+            'programmes' => \App\Models\Programme::orderBy('programme_name')->get(),
+            'departments' => \App\Models\Department::orderBy('dept_name')->get(),
+            'sessions' => \App\Models\AcademicSession::orderByDesc('id')->get(),
+            'semesters' => \App\Models\Semester::orderBy('id')->get(),
+            'hasFilter' => $hasFilter
         ]);
     }
 
+
+    
     // =========================
     // MANAGE STUDENT COURSES
     // =========================

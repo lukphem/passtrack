@@ -84,7 +84,8 @@
                     {{-- ACTIONS --}}
                     <td class="text-end">
 
-                        
+
+
                         {{-- PRINT --}}
                         <a href="{{ route('student.courses.print', [
                                 'session_id' => $row->session_id,
