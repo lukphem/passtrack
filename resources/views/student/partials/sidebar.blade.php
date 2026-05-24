@@ -25,6 +25,27 @@
         <span class="link-text">Registration History</span>
     </a>
 
+        {{-- Learning Materials --}}
+    <a href="{{ route('student.materials.index') }}"
+    class="{{ request()->is('student/materials*') ? 'active' : '' }}">
+        <i class="bi bi-book"></i>
+        <span class="link-text">Learning Materials</span>
+    </a>
+
+    {{-- Assignments --}}
+    <a href="#"
+    class="{{ request()->is('student/assignments*') ? 'active' : '' }}">
+        <i class="bi bi-journal-text"></i>
+        <span class="link-text">Assignments</span>
+    </a>
+
+    {{-- Quizzes --}}
+    <a href="#"
+    class="{{ request()->is('student/quizzes*') ? 'active' : '' }}">
+        <i class="bi bi-patch-question"></i>
+        <span class="link-text">Quizzes</span>
+    </a>
+
     {{-- Results --}}
     <a href="#"
        class="{{ request()->is('student/results*') ? 'active' : '' }}">
@@ -45,5 +66,27 @@
         <i class="bi bi-clock-history"></i>
         <span class="link-text">Timetable</span>
     </a>
+
+    <li>
+            <a href="#"
+               class="nav-link {{ request()->routeIs('lecturer.password.change') ? 'active' : '' }}">
+                <i class="bi bi-key"></i>
+                <span class="link-text">Change Password</span>
+            </a>
+        </li>
+
+
+       <li>
+            <a href="#"
+            class="nav-link"
+            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="link-text">Logout</span>
+            </a>
+
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                @csrf
+            </form>
+        </li>
 
 </div>

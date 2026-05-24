@@ -1,23 +1,30 @@
 <?php
 
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Admin\AcademicSemesterController;
 use App\Http\Controllers\Admin\AcademicSessionController;
-use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\AdminCourseRegistrationController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\FacultyController;
+use App\Http\Controllers\Admin\LecturerController;
 use App\Http\Controllers\Admin\LevelController;
 use App\Http\Controllers\Admin\ProgrammeController;
-use App\Http\Controllers\Admin\LecturerController;
+use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Lecturer\AssignmentController;
+use App\Http\Controllers\Lecturer\LecturerCourseController;
 use App\Http\Controllers\Lecturer\LecturerDashboardController;
-use App\Http\Controllers\Admin\AdminCourseRegistrationController;
-use App\Http\Controllers\Student\StudentDashboardController;
+use App\Http\Controllers\Lecturer\LecturerStudentController;
+use App\Http\Controllers\Lecturer\MaterialController;
+use App\Http\Controllers\Lecturer\QuizController;
 use App\Http\Controllers\Student\StudentCourseRegistrationController;
+use App\Http\Controllers\Student\StudentDashboardController;
+use App\Http\Controllers\Student\StudentMaterialController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
+
 
 
 
@@ -59,6 +66,11 @@ Route::middleware('auth')->group(function () {
         Route::delete('/drop-course/{course_id}', [StudentCourseRegistrationController::class, 'dropCourse'])->name('courses.drop');
         Route::get('/available-courses/expand', [StudentCourseRegistrationController::class, 'expandCourses'])->name('courses.expand');
         Route::get('/student/courses/print', [StudentCourseRegistrationController::class, 'printCourses'])->name('courses.print');
+
+        // ================= LEARNING MATERIALS (LMS) =================
+        Route::get('/learning-materials',[StudentMaterialController::class, 'index'])->name('materials.index');
+        Route::get('/learning-materials/{id}/view', [StudentMaterialController::class, 'show'])->name('material.view');
+        Route::post('/learning-materials/{id}/track', [StudentMaterialController::class, 'track'])->name('material.track');
     });
 
 /*
@@ -68,11 +80,36 @@ Route::middleware('auth')->group(function () {
 */
 Route::prefix('lecturer')
     ->name('lecturer.')
-    ->middleware(['auth', 'role:lecturer']) //'auth', 'role:lecturer'
+    ->middleware(['auth', 'role:lecturer'])
     ->group(function () {
 
         Route::get('/dashboard', [LecturerDashboardController::class, 'index']) ->name('dashboard');
-    });
+        // ================= COURSES =================
+        Route::get('/courses', [LecturerCourseController::class, 'index'])->name('courses.index');
+        Route::get('/courses/{course}/students', [LecturerCourseController::class, 'students'])->name('courses.students');
+        Route::get('/courses/{course}/students/export',[LecturerCourseController::class, 'export'])->name('courses.students.export');
+        // ================= STUDENTS (GLOBAL VIEW) =================
+        Route::get('/students', [LecturerStudentController::class, 'index'])->name('students.index');
+        Route::get('/students/export', [LecturerStudentController::class, 'export'])->name('students.export');
+
+        // ================= MATERIALS =================
+        Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
+        Route::post('/materials', [MaterialController::class, 'store'])->name('materials.store');
+        Route::get('/materials/{material}/edit', [MaterialController::class, 'edit'])->name('materials.edit');
+        Route::put('/materials/{material}', [MaterialController::class, 'update'])->name('materials.update');
+        Route::delete('/materials/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
+
+        // ================= ASSIGNMENTS =================
+        Route::get('/courses/{course}/assignments', [AssignmentController::class, 'index'])->name('assignments.index');
+        Route::post('/courses/{course}/assignments', [AssignmentController::class, 'store']) ->name('assignments.store');
+        Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
+
+        // ================= QUIZ (AI READY) =================
+        Route::get('/courses/{course}/quizzes', [QuizController::class, 'index'])->name('quizzes.index');
+        Route::post('/courses/{course}/quizzes/generate-ai', [QuizController::class, 'generateAI'])->name('quizzes.generate.ai');
+        Route::post('/courses/{course}/quizzes', [QuizController::class, 'store'])->name('quizzes.store');
+
+        });
 
 
 /*

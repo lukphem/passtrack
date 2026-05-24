@@ -45,9 +45,17 @@ class Course extends Model
         return $this->belongsTo(Lecturer::class);
     }
 
+        public function students()
+    {
+        return $this->belongsToMany(Student::class, 'coursereg_student')
+            ->withPivot(['session_id', 'semester_id'])
+            ->withTimestamps();
+    }
 
+        public function materials()
+    {
+        return $this->hasMany(\App\Models\Material::class);
+    }
 
-
-    
 }
 

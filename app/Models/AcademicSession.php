@@ -30,4 +30,9 @@ class AcademicSession extends Model
     {
         return $this->hasMany(Semester::class);
     }
+
+        public function materials()
+    {
+        return $this->hasMany(Material::class);
+    }
 }
